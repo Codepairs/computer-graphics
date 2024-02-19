@@ -7,7 +7,8 @@ class Renderer:
         self._image_size = self._h, self._w = 600, 800
         self._image_matrix = np.zeros(self._image_size, dtype=np.uint8)
 
-    def update_point(self, pos_y, pos_x, color):
+    @staticmethod
+    def update_point(image: np.ndarray, pos_y, pos_x, color) -> None:
         """
         Обновляет цвет точки по позиции
         :param pos_y: Позиция Y
@@ -15,26 +16,28 @@ class Renderer:
         :param color: Цвет
         :return: None
         """
-        self._image_matrix[pos_y][pos_x] = color
+        image[pos_y][pos_x] = color
 
-    def create_black_image(self):
+    @staticmethod
+    def make_image_black(image: np.ndarray) -> None:
         """
         Создает полностью черное изображение
         :return: PIL.image
         """
-        self._image_matrix = np.zeros(self._image_size, dtype=np.uint8)
-        return Image.fromarray(self._image_matrix)
+        image = np.zeros(image.shape, dtype=np.uint8)
 
-    def create_white_image(self):
+    @staticmethod
+    def make_image_colored(image: np.ndarray, color) -> None:
         """
         Создает полностью белое изображение
         :return: PIL.image
         """
-        self._image_matrix.fill(255)
-        return Image.fromarray(self._image_matrix)
+        image.fill(color)
+
+
 
     @staticmethod
-    def algorithm_dotted_line(image, x0, y0, x1, y1, count, color) -> None:
+    def algorithm_dotted_line(image: np.ndarray, x0, y0, x1, y1, count, color) -> None:
         """
         :param image: numpy ndarray
         x = x1 + (1-t)(x0-x1)
@@ -50,7 +53,7 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_dotted_line_sqrt(image, x0, y0, x1, y1, color)-> None:
+    def algorithm_dotted_line_sqrt(image: np.ndarray, x0, y0, x1, y1, color)-> None:
         """
         :param image: numpy ndarray
         недостатки:
@@ -64,7 +67,7 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_x_loop_line(image, x0, y0, x1, y1, color) -> None:
+    def algorithm_x_loop_line(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
         :param image: numpy ndarray
         недостатки:
@@ -77,7 +80,7 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_x_loop_line_fixed(image, x0, y0, x1, y1, color) -> None:
+    def algorithm_x_loop_line_fixed(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
         :param image: numpy ndarray
         недостатки:
@@ -102,7 +105,7 @@ class Renderer:
                 image[y, x] = color
 
     @staticmethod
-    def algorithm_dy(image, x0, y0, x1, y1, color) -> None:
+    def algorithm_dy(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
         :param image: numpy ndarray
         derror - погрешность вычислений, накапливаем ее, чтобы перейти вверх по y,
@@ -121,7 +124,7 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_bresenham(image, x0, y0, x1, y1, color) -> None:
+    def algorithm_bresenham(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
         :param image: numpy ndarray
         """

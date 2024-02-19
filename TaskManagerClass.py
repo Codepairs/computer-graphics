@@ -7,7 +7,7 @@ class TaskManager:
 
     def task1(self):
         renderer = Renderer()
-        black_image = renderer.create_black_image()
+        black_image = renderer.make_image_black()
         black_image.save('images/black-image.png')
         black_image.show('images/black-image.png')
         white_image = renderer.create_white_image()
