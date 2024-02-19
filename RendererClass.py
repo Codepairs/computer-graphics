@@ -18,23 +18,23 @@ class Renderer:
         """
         image[pos_y][pos_x] = color
 
-    @staticmethod
-    def make_image_black(image: np.ndarray) -> None:
-        """
-        Создает полностью черное изображение
-        :return: PIL.image
-        """
-        image = np.zeros(image.shape, dtype=np.uint8)
 
     @staticmethod
     def make_image_colored(image: np.ndarray, color) -> None:
         """
-        Создает полностью белое изображение
+        Заполняет изображение цветом color
         :return: PIL.image
         """
         image.fill(color)
 
+    @staticmethod
+    def make_image_gradient(image: np.ndarray) -> None:
+        """
 
+        """
+        for y in np.arange(0, image.shape[0]):
+            for x in np.arange(0, image.shape[1]):
+                image[y,x] = sum(image[y,x])%256
 
     @staticmethod
     def algorithm_dotted_line(image: np.ndarray, x0, y0, x1, y1, count, color) -> None:

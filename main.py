@@ -2,7 +2,7 @@ from TaskManagerClass import TaskManager
 
 
 def main():
-    #TaskManager.task1()
+    TaskManager.task1((256,256))
     #TaskManager.task2()
     #TaskManager.task3()
     TaskManager.task5()
