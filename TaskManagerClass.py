@@ -2,6 +2,7 @@ from RendererClass import Renderer
 from ObjManagerClass import ObjManager
 from PIL import Image
 import numpy as np
+import math
 
 class TaskManager:
     @staticmethod
@@ -37,8 +38,23 @@ class TaskManager:
         pil_gradient.show()
 
     @staticmethod
-    def task2():
-        pass
+    def task2(matrix_size: tuple, color: int):
+        images = [np.ndarray(matrix_size)]*6
+        renderer = Renderer()
+        total_lines = 13
+        for line in range(total_lines):
+            x0, y0 = matrix_size[1]//2, matrix_size[0]//2
+            x1, y1 = int(x0 + (x0-20) * math.cos((2 * math.pi * line) / total_lines)), int(y0 + (y0-20) * math.sin((2 * math.pi * line) / total_lines))
+            renderer.algorithm_dotted_line(images[0], x0, y0, x1, y1, 20, color)
+            renderer.algorithm_dotted_line_sqrt(images[1], x0, y0, x1, y1, color)
+            renderer.algorithm_x_loop_line(images[2], x0, y0, x1, y1, color)
+            renderer.algorithm_x_loop_line_fixed(images[3], x0, y0, x1, y1, color)
+            renderer.algorithm_dy(images[4], x0, y0, x1, y1, color)
+            renderer.algorithm_bresenham(images[5], x0, y0, x1, y1, color)
+
+        result_images = [Image.fromarray(x) for x in images]
+        for image in result_images:
+            image.show()
 
     @staticmethod
     def task3():
