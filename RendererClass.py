@@ -34,8 +34,9 @@ class Renderer:
         return Image.fromarray(self._image_matrix)
 
     @staticmethod
-    def algorithm_dotted_line(image, x0, y0, x1, y1, count, color):
+    def algorithm_dotted_line(image, x0, y0, x1, y1, count, color) -> None:
         """
+        :param image: numpy ndarray
         x = x1 + (1-t)(x0-x1)
         недостатки:
             из-за фиксированного count можем
@@ -49,10 +50,11 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_dotted_line_sqrt(image, x0, y0, x1, y1, color):
+    def algorithm_dotted_line_sqrt(image, x0, y0, x1, y1, color)-> None:
         """
+        :param image: numpy ndarray
         недостатки:
-            корень вычисляется 5 лет
+            медленное вычисление корня
         """
         count = math.sqrt((x0 - x1) ** 2 + (y0 - y1) ** 2)
         step = 1.0 / count
@@ -62,8 +64,9 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_x_loop_line(image, x0, y0, x1, y1, color):
+    def algorithm_x_loop_line(image, x0, y0, x1, y1, color) -> None:
         """
+        :param image: numpy ndarray
         недостатки:
             если начало правее конца, то не рисует (без левой половины)
             идем по x -> шаг по x<чем по у -> рядом с Оу получим пунктир
@@ -74,8 +77,9 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_x_loop_line_fixed(image, x0, y0, x1, y1, color):
+    def algorithm_x_loop_line_fixed(image, x0, y0, x1, y1, color) -> None:
         """
+        :param image: numpy ndarray
         недостатки:
             отсутствуют в явном виде
         """
@@ -98,8 +102,9 @@ class Renderer:
                 image[y, x] = color
 
     @staticmethod
-    def algorithm_dy(image, x0, y0, x1, y1, color):
+    def algorithm_dy(image, x0, y0, x1, y1, color) -> None:
         """
+        :param image: numpy ndarray
         derror - погрешность вычислений, накапливаем ее, чтобы перейти вверх по y,
          затем сбрасываем
         """
@@ -116,7 +121,10 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_bresenham(image, x0, y0, x1, y1, color):
+    def algorithm_bresenham(image, x0, y0, x1, y1, color) -> None:
+        """
+        :param image: numpy ndarray
+        """
         y = y0
         dy = 2 * abs(y1 - y0)
         derror = 0.0
