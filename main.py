@@ -1,5 +1,4 @@
 from TaskManagerClass import TaskManager
-from ObjParserClass import ObjParser
 
 
 def main():
@@ -8,7 +7,6 @@ def main():
     manager.task2()
     manager.task3()
     manager.task5()
-
 
 
 if __name__ == '__main__':

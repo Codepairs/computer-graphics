@@ -20,10 +20,10 @@ class TaskManager:
 
     def task3(self):
         obj_parser = ObjParser('obj-files/model_1.obj')
-        vertices, _ = obj_parser.parse()
+        vertices = obj_parser.parse_vertices()
         print(vertices)
 
     def task5(self):
         obj_parser = ObjParser('obj-files/model_1.obj')
-        _, faces = obj_parser.parse()
+        faces = obj_parser.parse_faces()
         print(faces)
