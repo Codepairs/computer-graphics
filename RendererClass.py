@@ -34,7 +34,7 @@ class Renderer:
         """
         for y in np.arange(0, image.shape[0]):
             for x in np.arange(0, image.shape[1]):
-                image[y,x] = ((y+x)//2)%256
+                image[y, x] = ((y+x)//2) % 256
 
     @staticmethod
     def algorithm_dotted_line(image: np.ndarray, x0, y0, x1, y1, count, color) -> None:
