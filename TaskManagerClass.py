@@ -60,7 +60,7 @@ class TaskManager:
 
         result_images = [Image.fromarray(x) for x in images]
         for image in result_images:
-            time.sleep(5)
+            #time.sleep(1)
             image.show()
 
     @staticmethod

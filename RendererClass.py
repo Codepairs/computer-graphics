@@ -137,6 +137,16 @@ class Renderer:
         derror - погрешность вычислений, накапливаем ее, чтобы перейти вверх по y,
          затем сбрасываем
         """
+        xchange = False
+        if (abs(x0 - x1) < abs(y0 - y1)):
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+            xchange = True
+
+        if (x0 > x1):
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+
         y = y0
         dy = abs((y1 - y0) / (x1 - x0))
         derror = 0.0
@@ -147,7 +157,10 @@ class Renderer:
             if derror > 0.5:
                 derror -= 1.0
                 y += y_update
-            image[y, x] = color
+            if xchange:
+                image[x, y] = color
+            else:
+                image[y, x] = color
 
     @staticmethod
     def algorithm_bresenham(image: np.ndarray, x0, y0, x1, y1, color) -> None:
@@ -159,6 +172,16 @@ class Renderer:
         :param color:
         :param image: numpy ndarray
         """
+        xchange = False
+        if (abs(x0 - x1) < abs(y0 - y1)):
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+            xchange = True
+
+        if (x0 > x1):
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+
         y = y0
         dy = 2 * abs(y1 - y0)
         derror = 0.0
@@ -169,7 +192,10 @@ class Renderer:
             if derror > 0.5:
                 derror -= 2 * (x1 - x0)
                 y += y_update
-            image[y, x] = color
+            if xchange:
+                image[x, y] = color
+            else:
+                image[y, x] = color
 
     @staticmethod
     def algorithm_bresenham_3d(image: np.ndarray, x0, y0, z0, x1, y1, z1, color) -> None:
