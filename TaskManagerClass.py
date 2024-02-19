@@ -70,7 +70,7 @@ class TaskManager:
 
     @staticmethod
     def task6(matrix_size: tuple):
-        image = np.ndarray(matrix_size, dtype=np.uint8)
+        image = np.zeros(matrix_size, dtype=np.uint8)
         render = Renderer()
         obj_manager = ObjManager('obj-files/model_1.obj')
         vertices = obj_manager.parse_vertices()
@@ -78,11 +78,24 @@ class TaskManager:
         for i in range(1, len(faces)+1):
             point1, point2, point3 = obj_manager.get_points_from_face(i, faces, vertices)
             print(i)
+            x1, y1, z1 = point1[0], point1[1], point1[2]
+            x2, y2, z2 = point2[0], point2[1], point2[2]
+            x3, y3, z3 = point3[0], point3[1], point3[2]
+            print('Точки для соединения:')
             obj_manager.print_points(point1, point2, point3)
-            #Вот сюда надо добавить отрисовку 3д полигона по трем точкам на картинке
-            #Типа такого:
-            #def render_polygon(point1, point2, point3):
-            #    draw_line(image, x1,y1,z1,x2,y2,z2, color)
-            #    draw_line(image, x2,y2,z2,x3,y3,z3, color)
-            #    draw_line(image, x3,y3,z3,x1,y1,z1, color)
+
+            '''
+            new_x1, new_y1 = -int(x1 * 5 + 500), int(x1 * 5 + 500)
+            new_x2, new_y2 = -int(z2 * 5 + 500), int(x2 * 5 + 500)
+            new_x3, new_y3 = -int(z3 * 5 + 500), int(x3 * 5 + 500)
+            print(new_x1, new_y1)
+            render.algorithm_bresenham(image, new_x1, new_y1, new_x2, new_y2, 255)
+            render.algorithm_bresenham(image, new_x2, new_y2, new_x3, new_y3, 255)
+            render.algorithm_bresenham(image, new_x3, new_y3, new_x1, new_y1, 255)
+        file_image = Image.fromarray(image, "L")
+        file_image.show()
+        '''
+
+
+
 
