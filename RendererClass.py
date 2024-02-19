@@ -1,6 +1,6 @@
 import numpy as np
-from PIL import Image
 import math
+
 
 class Renderer:
     def __init__(self):
@@ -11,13 +11,13 @@ class Renderer:
     def update_point(image: np.ndarray, pos_y, pos_x, color) -> None:
         """
         Обновляет цвет точки по позиции
+        :param image:
         :param pos_y: Позиция Y
         :param pos_x: Позиция X
         :param color: Цвет
         :return: None
         """
         image[pos_y][pos_x] = color
-
 
     @staticmethod
     def make_image_colored(image: np.ndarray, color) -> None:
@@ -34,11 +34,17 @@ class Renderer:
         """
         for y in np.arange(0, image.shape[0]):
             for x in np.arange(0, image.shape[1]):
-                image[y, x] = ((y+x)//2) % 256
+                image[y, x] = ((y + x) // 2) % 256
 
     @staticmethod
     def algorithm_dotted_line(image: np.ndarray, x0, y0, x1, y1, count, color) -> None:
         """
+        :param color:
+        :param count:
+        :param y1:
+        :param x1:
+        :param x0:
+        :param y0:
         :param image: numpy ndarray
         x = x1 + (1-t)(x0-x1)
         недостатки:
@@ -53,8 +59,13 @@ class Renderer:
             image[y, x] = color
 
     @staticmethod
-    def algorithm_dotted_line_sqrt(image: np.ndarray, x0, y0, x1, y1, color)-> None:
+    def algorithm_dotted_line_sqrt(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
+        :param color:
+        :param y1:
+        :param x1:
+        :param y0:
+        :param x0:
         :param image: numpy ndarray
         недостатки:
             медленное вычисление корня
@@ -69,6 +80,11 @@ class Renderer:
     @staticmethod
     def algorithm_x_loop_line(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
+        :param color:
+        :param y1:
+        :param x1:
+        :param y0:
+        :param x0:
         :param image: numpy ndarray
         недостатки:
             если начало правее конца, то не рисует (без левой половины)
@@ -82,17 +98,22 @@ class Renderer:
     @staticmethod
     def algorithm_x_loop_line_fixed(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
+        :param x0:
+        :param y0:
+        :param x1:
+        :param y1:
+        :param color:
         :param image: numpy ndarray
         недостатки:
             отсутствуют в явном виде
         """
         xchange = False
-        if (abs(x0 - x1) < abs(y0 - y1)):
+        if abs(x0 - x1) < abs(y0 - y1):
             x0, y0 = y0, x0
             x1, y1 = y1, x1
             xchange = True
 
-        if (x0 > x1):
+        if x0 > x1:
             x0, x1, = x1, x0
             y0, y1 = y1, y0
 
@@ -107,6 +128,11 @@ class Renderer:
     @staticmethod
     def algorithm_dy(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
+        :param x0:
+        :param y0:
+        :param x1:
+        :param y1:
+        :param color:
         :param image: numpy ndarray
         derror - погрешность вычислений, накапливаем ее, чтобы перейти вверх по y,
          затем сбрасываем
@@ -118,7 +144,7 @@ class Renderer:
 
         for x in range(x0, x1):
             derror += dy
-            if (derror > 0.5):
+            if derror > 0.5:
                 derror -= 1.0
                 y += y_update
             image[y, x] = color
@@ -126,6 +152,11 @@ class Renderer:
     @staticmethod
     def algorithm_bresenham(image: np.ndarray, x0, y0, x1, y1, color) -> None:
         """
+        :param x0:
+        :param y0:
+        :param x1:
+        :param y1:
+        :param color:
         :param image: numpy ndarray
         """
         y = y0
@@ -135,7 +166,7 @@ class Renderer:
 
         for x in range(x0, x1):
             derror += dy
-            if (derror > 0.5):
+            if derror > 0.5:
                 derror -= 2 * (x1 - x0)
                 y += y_update
             image[y, x] = color
