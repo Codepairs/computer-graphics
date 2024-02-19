@@ -2,11 +2,10 @@ from TaskManagerClass import TaskManager
 
 
 def main():
-    manager = TaskManager()
-    manager.task1()
-    manager.task2()
-    manager.task3()
-    manager.task5()
+    #TaskManager.task1()
+    #TaskManager.task2()
+    #TaskManager.task3()
+    TaskManager.task5()
 
 
 if __name__ == '__main__':
