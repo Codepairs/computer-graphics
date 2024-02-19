@@ -39,9 +39,10 @@ class TaskManager:
 
     @staticmethod
     def task2(matrix_size: tuple, color: int):
-        images = [np.ndarray(matrix_size)]*6
+        single_image = np.ndarray(matrix_size, dtype=np.uint8)
+        images = np.tile(single_image, (6,1,1))
         renderer = Renderer()
-        total_lines = 13
+        total_lines = 11
         for line in range(total_lines):
             x0, y0 = matrix_size[1]//2, matrix_size[0]//2
             x1, y1 = int(x0 + (x0-20) * math.cos((2 * math.pi * line) / total_lines)), int(y0 + (y0-20) * math.sin((2 * math.pi * line) / total_lines))
