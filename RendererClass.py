@@ -1,5 +1,8 @@
+from PIL import Image
 import numpy as np
 import math
+
+import ObjModelClass
 
 
 class Renderer:
@@ -196,3 +199,32 @@ class Renderer:
                 image[x, y] = color
             else:
                 image[y, x] = color
+
+    @staticmethod
+    def draw_polygon(image: Image, model: ObjModelClass.ObjModel, color: list[int], polygon_number: int):
+        """
+        Отрисовка полигона
+        :param image:
+        :param model:
+        :param color:
+        :return:
+        """
+        point1, point2, point3 = model.get_points_by_index(polygon_number)
+        point1 = point1.transform(model.scale, model.offset)
+        point2 = point2.transform(model.scale, model.offset)
+        point3 = point3.transform(model.scale, model.offset)
+        Renderer.algorithm_bresenham(image, point1.x, point1.y, point2.x, point2.y, color)
+        Renderer.algorithm_bresenham(image, point2.x, point2.y, point3.x, point3.y, color)
+        Renderer.algorithm_bresenham(image, point3.x, point3.y, point1.x, point1.y, color)
+
+    @staticmethod
+    def draw_model(image: Image, model: ObjModelClass.ObjModel, color: list[int]):
+        """
+        Отрисовка модели циклом по полигонам
+        :param image:
+        :param model:
+        :param color:
+        :return:
+        """
+        for i in range(1, len(model.faces) + 1):
+            Renderer.draw_polygon(image, model, color, i)

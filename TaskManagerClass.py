@@ -68,6 +68,8 @@ class TaskManager:
         vertices = model.parse_vertices()
         print(vertices)
 
+
+
     @staticmethod
     def choose_model(model_num):
         if model_num == 1:
@@ -86,10 +88,17 @@ class TaskManager:
 
         elif model_num == 3:
             path = 'obj-files/model_3.obj'
-            scale = 0.4
+            scale = 700
+            offset = 300
+            model_to_render = ObjModel(path, scale, offset)
+            return model_to_render
+        elif model_num == 4:
+            path = 'obj-files/model_4.obj'
+            scale = 4
             offset = 400
             model_to_render = ObjModel(path, scale, offset)
             return model_to_render
+
 
     @staticmethod
     def task4(matrix_size: tuple, color, model_num):
@@ -114,20 +123,10 @@ class TaskManager:
         print(faces)
 
     @staticmethod
-    def task6(matrix_size: tuple, color: int, model_num: int):
+    def task6(matrix_size: tuple, color: list[int], model_num: int):
         model = TaskManager.choose_model(model_num)
-        render = Renderer()
-        image = np.zeros(matrix_size, dtype=np.uint8)
-        for i in range(1, len(model.faces) + 1):
-            point1, point2, point3 = model.get_points_by_index(i)
-            point1 = point1.transform(model.scale, model.offset)
-            point2 = point2.transform(model.scale, model.offset)
-            point3 = point3.transform(model.scale, model.offset)
-
-            render.algorithm_bresenham(image, point1.x, point1.y, point2.x, point2.y, color)
-            render.algorithm_bresenham(image, point2.x, point2.y, point3.x, point3.y, color)
-            render.algorithm_bresenham(image, point3.x, point3.y, point1.x, point1.y, color)
-
-        file_image = Image.fromarray(image, "L")
+        image = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_model(image, model, color)
+        file_image = Image.fromarray(image, "RGB")
         file_image = ImageOps.flip(file_image)
         file_image.show()

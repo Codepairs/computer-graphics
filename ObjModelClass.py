@@ -8,7 +8,7 @@ class ObjModel:
     Класс obj модели
     """
 
-    def __init__(self, obj_file: str, scale: int = 1, offset=0):
+    def __init__(self, obj_file: str, scale: float = 1, offset=0):
         self.obj_filepath = obj_file
         self.scale = scale
         self.offset = offset
@@ -41,9 +41,10 @@ class ObjModel:
                 if line.startswith('f '):
                     face = [int(val.split('/')[0]) for val in line.split()[1:]]
                     faces.append(face)
-                    
+
             #Вот тут падает из-за разной размерности полигонов
-            return np.array(faces, dtype=np.uint8)
+            #return np.array(faces)
+            return faces
 
     def get_points_by_index(self, vertices_index: int):
         """
@@ -55,10 +56,13 @@ class ObjModel:
         # Добавляем везде -1, тк мы считаем индексы с единицы.
         if vertices_index <= 0:
             raise ValueError('Неверный индекс вершины! Индексация номеров вершин начинается с единицы!')
-        array = np.array(self.vertices[self.faces[vertices_index - 1] - 1])
-        point1 = Point3D(array[0][0], array[0][1], array[0][2])
-        point2 = Point3D(array[1][0], array[1][1], array[1][2])
-        point3 = Point3D(array[2][0], array[2][1], array[2][2])
+        points_indexes = self.faces[vertices_index - 1]
+        raw_point1 = self.vertices[points_indexes[0] - 1]
+        raw_point2 = self.vertices[points_indexes[1] - 1]
+        raw_point3 = self.vertices[points_indexes[2] - 1]
+        point1 = Point3D(raw_point1[0], raw_point1[1], raw_point1[2])
+        point2 = Point3D(raw_point2[0], raw_point2[1], raw_point2[2])
+        point3 = Point3D(raw_point3[0], raw_point3[1], raw_point3[2])
         array = np.array([point1, point2, point3])
         return array
 
