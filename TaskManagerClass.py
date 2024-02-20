@@ -1,5 +1,3 @@
-import time
-
 from RendererClass import Renderer
 from ObjManagerClass import ObjManager
 from PIL import Image, ImageOps
@@ -16,18 +14,18 @@ class TaskManager:
         renderer = Renderer()
         black_image = np.ndarray(matrix_size, dtype=np.uint8)
         white_image = np.ndarray(matrix_size, dtype=np.uint8)
-        volume_image = np.full(shape=matrix_size_3d, fill_value=[256, 0, 0], dtype=np.uint8)
+        volume_image = np.full(shape=matrix_size_3d, fill_value=[255, 0, 0], dtype=np.uint8)
         gradient_image = np.ndarray(shape=matrix_size_3d, dtype=np.uint8)
 
         renderer.make_image_colored(black_image, 0)
 
-        pil_black = Image.fromarray(black_image)
+        pil_black = Image.fromarray(black_image, mode="L")
         pil_black.save('images/black-image.png')
         pil_black.show()
 
         renderer.make_image_colored(white_image, 255)
 
-        pil_white = Image.fromarray(white_image)
+        pil_white = Image.fromarray(white_image, mode="L")
         pil_white.save('images/white-test.png')
         pil_white.show()
 
@@ -58,7 +56,7 @@ class TaskManager:
             renderer.algorithm_dy(images[4], x0, y0, x1, y1, color)
             renderer.algorithm_bresenham(images[5], x0, y0, x1, y1, color)
 
-        result_images = [Image.fromarray(x, mode='L') for x in images]
+        result_images = [Image.fromarray(x) for x in images]
         for image in result_images:
             image.show()
 
@@ -91,7 +89,7 @@ class TaskManager:
             new_y = int(const_mods[0]*y+const_mods[1])
             renderer.update_point(image, pos_x=new_x,pos_y=new_y,color=color)
 
-        pil_image = Image.fromarray(image, mode='L')
+        pil_image = Image.fromarray(image)
         pil_image = ImageOps.flip(pil_image)
         pil_image.show()
 
@@ -136,9 +134,9 @@ class TaskManager:
             scaled_x3 = int(const_mods[0] * x3 + const_mods[1])
             scaled_y3 = int(const_mods[0] * y3 + const_mods[1])
 
-            render.algorithm_bresenham(image, scaled_x1, scaled_y1, scaled_x2, scaled_y2, 255)
-            render.algorithm_bresenham(image, scaled_x2, scaled_y2, scaled_x3, scaled_y3, 255)
-            render.algorithm_bresenham(image, scaled_x3, scaled_y3, scaled_x1, scaled_y1, 255)
+            render.algorithm_bresenham(image, scaled_x1, scaled_y1, scaled_x2, scaled_y2, color)
+            render.algorithm_bresenham(image, scaled_x2, scaled_y2, scaled_x3, scaled_y3, color)
+            render.algorithm_bresenham(image, scaled_x3, scaled_y3, scaled_x1, scaled_y1, color)
 
         file_image = Image.fromarray(image, "L")
         file_image = ImageOps.flip(file_image)
