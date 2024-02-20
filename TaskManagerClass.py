@@ -1,6 +1,6 @@
 from RendererClass import Renderer
-from ObjManagerClass import ObjManager
 from PIL import Image, ImageOps
+from ObjModelClass import ObjModel
 import numpy as np
 import math
 
@@ -42,7 +42,6 @@ class TaskManager:
     @staticmethod
     def task2(matrix_size: tuple, color: int):
         single_image = np.zeros(shape=matrix_size, dtype=np.uint8)
-        #single_image = np.ndarray(matrix_size, dtype=np.uint8)
         images = np.tile(single_image, (6, 1, 1))
 
         renderer = Renderer()
@@ -59,89 +58,76 @@ class TaskManager:
             renderer.algorithm_dy(images[4], x0, y0, x1, y1, color)
             renderer.algorithm_bresenham(images[5], x0, y0, x1, y1, color)
 
-        result_images =[Image.fromarray(x, mode="L") for x in images]
+        result_images = [Image.fromarray(x, mode="L") for x in images]
         for image in result_images:
             image.show()
 
     @staticmethod
     def task3():
-        obj_parser = ObjManager(path_to_obj_file)
-        vertices = obj_parser.parse_vertices()
+        model = ObjModel(path_to_obj_file)
+        vertices = model.parse_vertices()
         print(vertices)
 
     @staticmethod
-    def task4(matrix_size: tuple, color, model_num):
-        path = ""
-        const_mods = [1, 1]
-        if model_num==1:
+    def choose_model(model_num):
+        if model_num == 1:
             path = 'obj-files/model_1.obj'
-            const_mods = [3000, 500]
+            scale = 3000
+            offset = 500
+            model_to_render = ObjModel(path, scale, offset)
+            return model_to_render
 
-        elif model_num==2:
+        elif model_num == 2:
             path = 'obj-files/model_2.obj'
-            const_mods = [0.4, 400]
+            scale = 0.4
+            offset = 400
+            model_to_render = ObjModel(path, scale, offset)
+            return model_to_render
 
-        obj_parser = ObjManager(path)
+        elif model_num == 3:
+            path = 'obj-files/model_3.obj'
+            scale = 0.4
+            offset = 400
+            model_to_render = ObjModel(path, scale, offset)
+            return model_to_render
+
+    @staticmethod
+    def task4(matrix_size: tuple, color, model_num):
+
+        model = TaskManager.choose_model(model_num)
         renderer = Renderer()
-
-        vertices = obj_parser.parse_vertices()
         image = np.ndarray(matrix_size)
 
-        for (x,y,z) in vertices:
-            new_x = int(const_mods[0]*x+const_mods[1]) #2 mod
-            new_y = int(const_mods[0]*y+const_mods[1])
-            renderer.update_point(image, pos_x=new_x,pos_y=new_y,color=color)
+        for (x, y, z) in model.vertices:
+            new_x = int(model.get_scale() * x + model.get_offset())  # 2 mod
+            new_y = int(model.get_scale() * y + model.get_offset())
+            renderer.update_point(image, pos_x=new_x, pos_y=new_y, color=color)
 
         pil_image = Image.fromarray(image)
         pil_image = ImageOps.flip(pil_image)
         pil_image.show()
 
-
     @staticmethod
     def task5():
-        obj_parser = ObjManager(path_to_obj_file)
-        faces = obj_parser.parse_faces()
+        model = ObjModel(path_to_obj_file)
+        faces = model.parse_faces()
         print(faces)
 
     @staticmethod
-    def task6(matrix_size: tuple, color:int, model_num: int):
-        path = ""
-        const_mods = [1, 1]
-        if model_num == 1:
-            path = 'obj-files/model_1.obj'
-            const_mods = [3000, 500]
-
-
-        elif model_num == 2:
-            path = 'obj-files/model_2.obj'
-            const_mods = [0.4, 400]
-
-
-        image = np.zeros(matrix_size, dtype=np.uint8)
+    def task6(matrix_size: tuple, color: int, model_num: int):
+        model = TaskManager.choose_model(model_num)
         render = Renderer()
-        obj_manager = ObjManager(path)
-        vertices = obj_manager.parse_vertices()
-        faces = obj_manager.parse_faces()
+        image = np.zeros(matrix_size, dtype=np.uint8)
+        for i in range(1, len(model.faces) + 1):
+            point1, point2, point3 = model.get_points_by_index(i)
+            point1 = point1.transform(model.scale, model.offset)
+            point2 = point2.transform(model.scale, model.offset)
+            point3 = point3.transform(model.scale, model.offset)
 
-
-        for i in range(1, len(faces) + 1):
-            point1, point2, point3 = obj_manager.get_points_from_face(i, faces, vertices)
-            x1, y1, z1 = point1[0], point1[1], point1[2]
-            x2, y2, z2 = point2[0], point2[1], point2[2]
-            x3, y3, z3 = point3[0], point3[1], point3[2]
-
-            scaled_x1 = int(const_mods[0] * x1 + const_mods[1])
-            scaled_y1 = int(const_mods[0] * y1 + const_mods[1])
-            scaled_x2 = int(const_mods[0] * x2 + const_mods[1])
-            scaled_y2 = int(const_mods[0] * y2 + const_mods[1])
-            scaled_x3 = int(const_mods[0] * x3 + const_mods[1])
-            scaled_y3 = int(const_mods[0] * y3 + const_mods[1])
-
-            render.algorithm_bresenham(image, scaled_x1, scaled_y1, scaled_x2, scaled_y2, color)
-            render.algorithm_bresenham(image, scaled_x2, scaled_y2, scaled_x3, scaled_y3, color)
-            render.algorithm_bresenham(image, scaled_x3, scaled_y3, scaled_x1, scaled_y1, color)
+            render.algorithm_bresenham(image, point1.x, point1.y, point2.x, point2.y, color)
+            render.algorithm_bresenham(image, point2.x, point2.y, point3.x, point3.y, color)
+            render.algorithm_bresenham(image, point3.x, point3.y, point1.x, point1.y, color)
 
         file_image = Image.fromarray(image, "L")
         file_image = ImageOps.flip(file_image)
         file_image.show()
-

@@ -196,7 +196,3 @@ class Renderer:
                 image[x, y] = color
             else:
                 image[y, x] = color
-
-    @staticmethod
-    def algorithm_bresenham_3d(image: np.ndarray, x0, y0, z0, x1, y1, z1, color) -> None:
-        pass
