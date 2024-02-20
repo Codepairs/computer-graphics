@@ -41,10 +41,13 @@ class TaskManager:
 
     @staticmethod
     def task2(matrix_size: tuple, color: int):
-        single_image = np.ndarray(matrix_size, dtype=np.uint8)
+        single_image = np.zeros(shape=matrix_size, dtype=np.uint8)
+        #single_image = np.ndarray(matrix_size, dtype=np.uint8)
         images = np.tile(single_image, (6, 1, 1))
+
         renderer = Renderer()
         total_lines = 10
+
         for line in range(total_lines):
             x0, y0 = matrix_size[1] // 2, matrix_size[0] // 2
             x1, y1 = int(x0 + (x0 - 20) * math.cos((2 * math.pi * line) / total_lines)), int(
@@ -56,7 +59,7 @@ class TaskManager:
             renderer.algorithm_dy(images[4], x0, y0, x1, y1, color)
             renderer.algorithm_bresenham(images[5], x0, y0, x1, y1, color)
 
-        result_images = [Image.fromarray(x) for x in images]
+        result_images =[Image.fromarray(x, mode="L") for x in images]
         for image in result_images:
             image.show()
 
