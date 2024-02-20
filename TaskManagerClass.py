@@ -2,11 +2,11 @@ import time
 
 from RendererClass import Renderer
 from ObjManagerClass import ObjManager
-from PIL import Image
+from PIL import Image, ImageOps
 import numpy as np
 import math
 
-path_to_obj_file = 'obj-files/model_1.obj'
+path_to_obj_file = 'obj-files/model_2.obj'
 
 
 class TaskManager:
@@ -31,7 +31,7 @@ class TaskManager:
         pil_white.save('images/white-test.png')
         pil_white.show()
 
-        pil_volume = Image.fromarray(volume_image)
+        pil_volume = Image.fromarray(volume_image, mode="RGB")
         pil_volume.save('images/volume-test.png')
         pil_volume.show()
 
@@ -58,9 +58,8 @@ class TaskManager:
             renderer.algorithm_dy(images[4], x0, y0, x1, y1, color)
             renderer.algorithm_bresenham(images[5], x0, y0, x1, y1, color)
 
-        result_images = [Image.fromarray(x) for x in images]
+        result_images = [Image.fromarray(x, mode='L') for x in images]
         for image in result_images:
-            #time.sleep(1)
             image.show()
 
     @staticmethod
@@ -70,35 +69,78 @@ class TaskManager:
         print(vertices)
 
     @staticmethod
+    def task4(matrix_size: tuple, color, model_num):
+        path = ""
+        const_mods = [1, 1]
+        if model_num==1:
+            path = 'obj-files/model_1.obj'
+            const_mods = [3000, 500]
+
+        elif model_num==2:
+            path = 'obj-files/model_2.obj'
+            const_mods = [0.4, 400]
+
+        obj_parser = ObjManager(path)
+        renderer = Renderer()
+
+        vertices = obj_parser.parse_vertices()
+        image = np.ndarray(matrix_size)
+
+        for (x,y,z) in vertices:
+            new_x = int(const_mods[0]*x+const_mods[1]) #2 mod
+            new_y = int(const_mods[0]*y+const_mods[1])
+            renderer.update_point(image, pos_x=new_x,pos_y=new_y,color=color)
+
+        pil_image = Image.fromarray(image, mode='L')
+        pil_image = ImageOps.flip(pil_image)
+        pil_image.show()
+
+
+    @staticmethod
     def task5():
         obj_parser = ObjManager(path_to_obj_file)
         faces = obj_parser.parse_faces()
         print(faces)
 
     @staticmethod
-    def task6(matrix_size: tuple):
+    def task6(matrix_size: tuple, color:int, model_num: int):
+        path = ""
+        const_mods = [1, 1]
+        if model_num == 1:
+            path = 'obj-files/model_1.obj'
+            const_mods = [3000, 500]
+
+
+        elif model_num == 2:
+            path = 'obj-files/model_2.obj'
+            const_mods = [0.4, 400]
+
+
         image = np.zeros(matrix_size, dtype=np.uint8)
         render = Renderer()
-        obj_manager = ObjManager(path_to_obj_file)
+        obj_manager = ObjManager(path)
         vertices = obj_manager.parse_vertices()
         faces = obj_manager.parse_faces()
+
+
         for i in range(1, len(faces) + 1):
             point1, point2, point3 = obj_manager.get_points_from_face(i, faces, vertices)
-            print(i)
             x1, y1, z1 = point1[0], point1[1], point1[2]
             x2, y2, z2 = point2[0], point2[1], point2[2]
             x3, y3, z3 = point3[0], point3[1], point3[2]
-            print('Точки для соединения:')
-            obj_manager.print_points(point1, point2, point3)
 
-            '''
-            new_x1, new_y1 = -int(x1 * 5 + 500), int(x1 * 5 + 500)
-            new_x2, new_y2 = -int(z2 * 5 + 500), int(x2 * 5 + 500)
-            new_x3, new_y3 = -int(z3 * 5 + 500), int(x3 * 5 + 500)
-            print(new_x1, new_y1)
-            render.algorithm_bresenham(image, new_x1, new_y1, new_x2, new_y2, 255)
-            render.algorithm_bresenham(image, new_x2, new_y2, new_x3, new_y3, 255)
-            render.algorithm_bresenham(image, new_x3, new_y3, new_x1, new_y1, 255)
+            scaled_x1 = int(const_mods[0] * x1 + const_mods[1])
+            scaled_y1 = int(const_mods[0] * y1 + const_mods[1])
+            scaled_x2 = int(const_mods[0] * x2 + const_mods[1])
+            scaled_y2 = int(const_mods[0] * y2 + const_mods[1])
+            scaled_x3 = int(const_mods[0] * x3 + const_mods[1])
+            scaled_y3 = int(const_mods[0] * y3 + const_mods[1])
+
+            render.algorithm_bresenham(image, scaled_x1, scaled_y1, scaled_x2, scaled_y2, 255)
+            render.algorithm_bresenham(image, scaled_x2, scaled_y2, scaled_x3, scaled_y3, 255)
+            render.algorithm_bresenham(image, scaled_x3, scaled_y3, scaled_x1, scaled_y1, 255)
+
         file_image = Image.fromarray(image, "L")
+        file_image = ImageOps.flip(file_image)
         file_image.show()
-        '''
+
