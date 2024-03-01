@@ -67,7 +67,7 @@ class ObjModel:
         #return np.array([ymin, ymax, ymean])
 
 
-    def scale_coordinates(self, resolution: tuple):
+    def scale_coordinates(self, resolution: tuple, scale_modificator=2):
         '''
 
         :param resolution: sizes int
@@ -77,8 +77,8 @@ class ObjModel:
         scale = 1
         model_max = abs(max(abs(self.ymax), abs(self.xmax)))
 
-        while model_max*(scale ** 2) < limit:
-            scale*=2
+        while model_max*(scale * (scale_modificator**2)) < limit:
+            scale*=scale_modificator
         if model_max*scale*(1.5) < limit:
             scale*=1.5
         self.scale = scale
