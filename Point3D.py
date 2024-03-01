@@ -7,7 +7,7 @@ class Point3D:
         self.y = y
         self.z = z
 
-    def transform(self, scale, offset):
+    def transform(self, scale, offset_x, offset_y, offset_z):
         """
         Масштабирование точки и добавление смещения
         :param scale:
@@ -17,9 +17,9 @@ class Point3D:
         x = int(self.x * scale)
         y = int(self.y * scale)
         z = int(self.z * scale)
-        x += offset
-        y += offset
-        z += offset
+        x += offset_x
+        y += offset_y
+        z += offset_z
         return Point3D(x, y, z)
 
     def __str__(self):

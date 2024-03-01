@@ -70,6 +70,7 @@ class TaskManager:
 
 
 
+    '''
     @staticmethod
     def choose_model(model_num):
         if model_num == 1:
@@ -98,12 +99,22 @@ class TaskManager:
             offset = 400
             model_to_render = ObjModel(path, scale, offset)
             return model_to_render
+    '''
+
+    @staticmethod
+    def choose_model(model_num, resolution: tuple):
+        path = 'obj-files/model_{}.obj'.format(model_num)
+        model_to_render = ObjModel(obj_file=path)
+        model_to_render.fill_coordinates_info()
+        model_to_render.scale_coordinates(resolution)
+        model_to_render.offset_coordinates(resolution)
+        return model_to_render
 
 
     @staticmethod
     def task4(matrix_size: tuple, color, model_num):
 
-        model = TaskManager.choose_model(model_num)
+        model = TaskManager.choose_model(model_num, matrix_size)
         renderer = Renderer()
         image = np.ndarray(matrix_size)
 
@@ -124,7 +135,7 @@ class TaskManager:
 
     @staticmethod
     def task6(matrix_size: tuple, color: list[int], model_num: int):
-        model = TaskManager.choose_model(model_num)
+        model = TaskManager.choose_model(model_num, matrix_size)
         image = np.zeros(matrix_size + (3,), dtype=np.uint8)
         Renderer.draw_model(image, model, color)
         file_image = Image.fromarray(image, "RGB")

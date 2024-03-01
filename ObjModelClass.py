@@ -11,9 +11,23 @@ class ObjModel:
     def __init__(self, obj_file: str, scale: float = 1, offset=0):
         self.obj_filepath = obj_file
         self.scale = scale
-        self.offset = offset
+        self.offset_x = offset
+        self.offset_y = offset
+        self.offset_z = offset
         self.faces = self.parse_faces()
         self.vertices = self.parse_vertices()
+
+        self.ymax = 0
+        self.ymin = 0
+        self.ymean = 0
+
+        self.xmax = 0
+        self.xmin = 0
+        self.xmean = 0
+
+        self.zmax = 0
+        self.zmin = 0
+        self.zmean = 0
 
     def parse_vertices(self):
         """
@@ -21,13 +35,85 @@ class ObjModel:
         :return: np.array
         """
         with open(self.obj_filepath, 'r') as f:
-            lines = f.readlines()
+            lines = np.array(f.readlines())
             vertices = []
             for line in lines:
                 if line.startswith('v '):
                     vertex = [float(val) for val in line.split()[1:]]
                     vertices.append(vertex)
             return np.array(vertices)
+
+    def fill_coordinates_info(self) -> np.array:
+        '''
+        :return: np.array: min, max, mean values
+        '''
+        vertices = self.parse_vertices()
+        vertices_x = vertices[:, 0]
+        vertices_y = vertices[:, 1]
+        vertices_z = vertices[:, 2]
+        self.ymin = np.min(vertices_y)
+        self.ymax = np.max(vertices_y)
+        self.ymean = np.mean(vertices_y)
+
+        self.xmin = np.min(vertices_x)
+        self.xmax = np.max(vertices_x)
+        self.xmean = np.mean(vertices_x)
+
+        self.zmin = np.min(vertices_z)
+        self.zmax = np.max(vertices_z)
+        self.zmean = np.mean(vertices_z)
+
+
+        #return np.array([ymin, ymax, ymean])
+
+
+    def scale_coordinates(self, resolution: tuple):
+        '''
+
+        :param resolution: sizes int
+        :return: void
+        '''
+        limit = min(resolution)
+        scale = 1
+        model_max = abs(max(abs(self.ymax), abs(self.xmax)))
+
+        while model_max*(scale ** 2) < limit:
+            scale*=2
+        if model_max*scale*(1.5) < limit:
+            scale*=1.5
+        self.scale = scale
+        #return scale
+
+
+    def offset_coordinates(self, resolution: tuple):
+        self.offset_coordinate_x(resolution)
+        self.offset_coordinate_y(resolution)
+        self.offset_coordinate_z(resolution)
+
+    def offset_coordinate_x(self, resolution: tuple):
+        limit = resolution[1]
+        offset = 0
+        while abs(self.xmax) * self.scale + offset + limit // 10 < limit:
+            offset += limit // 10
+
+        self.offset_x = offset
+
+    def offset_coordinate_y(self, resolution: tuple):
+        limit = resolution[1]
+        offset = 0
+        while abs(self.ymax) * self.scale + offset + limit // 10 < limit:
+            offset += limit // 10
+
+        self.offset_y = offset
+
+    def offset_coordinate_z(self, resolution: tuple):
+        limit = resolution[1]
+        offset = 0
+        while abs(self.zmax) * self.scale + offset + limit // 10 < limit:
+            offset += limit // 10
+
+        self.offset_z = offset
+
 
     def parse_faces(self):
         """

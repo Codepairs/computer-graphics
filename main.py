@@ -8,8 +8,7 @@ def main():
     # TaskManager.task3()
     # TaskManager.task4((1000, 1000), 255, 2)
     # TaskManager.task5()
-    TaskManager.task6((1000, 1000), color=colors.CYAN, model_num=4)
-
+    TaskManager.task6((1000, 1000), color=colors.CYAN, model_num=1)
 
 if __name__ == '__main__':
     main()

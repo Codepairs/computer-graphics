@@ -210,9 +210,9 @@ class Renderer:
         :return:
         """
         point1, point2, point3 = model.get_points_by_index(polygon_number)
-        point1 = point1.transform(model.scale, model.offset)
-        point2 = point2.transform(model.scale, model.offset)
-        point3 = point3.transform(model.scale, model.offset)
+        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
         Renderer.algorithm_bresenham(image, point1.x, point1.y, point2.x, point2.y, color)
         Renderer.algorithm_bresenham(image, point2.x, point2.y, point3.x, point3.y, color)
         Renderer.algorithm_bresenham(image, point3.x, point3.y, point1.x, point1.y, color)
