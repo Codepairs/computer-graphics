@@ -76,11 +76,18 @@ class ObjModel:
         limit = min(resolution)
         scale = 1
         model_max = abs(max(abs(self.ymax), abs(self.xmax)))
-
-        while model_max*(scale * (scale_modificator**2)) < limit:
-            scale*=scale_modificator
-        if model_max*scale*(1.5) < limit:
-            scale*=1.5
+        if model_max > limit:
+            scale_modificator = 1/scale_modificator
+            scale = scale_modificator
+            while model_max * (scale * (scale_modificator ** 2)) > limit:
+                scale *= scale_modificator
+            if model_max * scale * scale_modificator > limit:
+                scale *= scale_modificator
+        else:
+            while model_max*(scale * (scale_modificator**2)) < limit:
+                scale*=scale_modificator
+            if model_max*scale*scale_modificator < limit:
+                scale*=scale_modificator
         self.scale = scale
         #return scale
 
