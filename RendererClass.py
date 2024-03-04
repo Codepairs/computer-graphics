@@ -228,3 +228,58 @@ class Renderer:
         """
         for i in range(1, len(model.faces) + 1):
             Renderer.draw_polygon(image, model, color, i)
+
+
+    @staticmethod
+    def determine_baricentric(x: int, x0: float, x1: float, x2:float, y: int, y0:float, y1:float, y2:float) -> np.array:
+        '''
+
+        :param x:
+        :param x1:
+        :param x2:
+        :param y:
+        :param y1:
+        :param y2:
+        :return: np.array: lambda0, lambda1, lambda2
+        '''
+        lambda0 = ((x1 - x2) * (y - y2) - (y1 - y2) * (x - x2)) / ((x1 - x2) * (y0 - y2) - (y1 - y2) * (x0 - x2))
+        lambda1 = ((x2 - x0) * (y - y0) - (y2 - y0) * (x - x0)) / ((x2 - x0) * (y1 - y0) - (y2 - y0) * (x1 - x0))
+        lambda2 = 1.0 - lambda0 - lambda1
+
+        return np.array([lambda0, lambda1, lambda2])
+
+    @staticmethod
+    def draw_triangle(image: np.ndarray, color: int, x0: float, x1: float, x2:float, y0:float, y1:float, y2:float) -> None:
+        xmin = min(x0, x1, x2)
+        ymin = min(y0, y1, y2)
+        xmax = max(x0, x1, x2)
+        ymax = max(y0, y1, y2)
+
+        if (xmin<0):
+            xmin = 0
+        if (ymin<0):
+            ymin = 0
+
+        if (xmax>image.shape[1]):
+            xmax = image.shape[1]
+        if (ymax > image.shape[0]):
+            ymax = image.shape[0]
+
+
+        for y in np.arange(ymin, ymax):
+            for x in np.arange(xmin, xmax):
+                baricentrics = Renderer.determine_baricentric(x, x0, x1, x2, y, y0, y1, y2)
+                #print(y, '  ', x, '  ', baricentrics)
+
+                if (all(lam>0 for lam in baricentrics)):
+                    image[y, x] = color
+
+
+
+
+
+
+
+
+
+

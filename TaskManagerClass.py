@@ -141,3 +141,27 @@ class TaskManager:
         file_image = Image.fromarray(image, "RGB")
         file_image = ImageOps.flip(file_image)
         file_image.show()
+
+    @staticmethod
+    def task8(matrix_size: tuple, color, x0, x1, x2, y0, y1, y2):
+        image = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_triangle(image=image, color=color, x0=x0, x1=x1, x2=x2, y0=y0, y1=y1, y2=y2)
+        file_image = Image.fromarray(image, "RGB")
+        #file_image = ImageOps.flip(file_image)
+        file_image.show()
+
+    @staticmethod
+    def task9(matrix_size: tuple, color):
+        # completely into bounds
+        image1 = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_triangle(image=image1, color=color, x0=0, x1=200, x2=800, y0=1, y1=500, y2=900)
+        file_image1 = Image.fromarray(image1, "RGB")
+        file_image1.show()
+
+        # partly out of bounds
+        image2 = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_triangle(image=image2, color=color, x0=-100, x1=200, x2=800, y0=1, y1=5000, y2=900)
+        file_image2 = Image.fromarray(image2, "RGB")
+        file_image2.show()
+
+
