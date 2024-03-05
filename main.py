@@ -17,6 +17,8 @@ def main():
     #TaskManager.task11()
     # TaskManager.task12((1000, 1000), model_num=2)
     TM2.task14((1000, 1000), model_num=2)
+    #TaskManager.task12((1000, 1000), model_num=4)
+    TaskManager.task13((1000, 1000), colors.SILVER, model_num=4)
 
 if __name__ == '__main__':
     main()
