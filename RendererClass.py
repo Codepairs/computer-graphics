@@ -3,6 +3,7 @@ import numpy as np
 import math
 
 import ObjModelClass
+import colors
 
 
 class Renderer:
@@ -201,7 +202,7 @@ class Renderer:
                 image[y, x] = color
 
     @staticmethod
-    def draw_polygon(image: Image, model: ObjModelClass.ObjModel, color: list[int], polygon_number: int):
+    def draw_polygon_face(image: Image, model: ObjModelClass.ObjModel, color: list[int], polygon_number: int):
         """
         Отрисовка полигона
         :param image:
@@ -218,7 +219,7 @@ class Renderer:
         Renderer.algorithm_bresenham(image, point3.x, point3.y, point1.x, point1.y, color)
 
     @staticmethod
-    def draw_model(image: Image, model: ObjModelClass.ObjModel, color: list[int]):
+    def draw_model_with_faces(image: Image, model: ObjModelClass.ObjModel, color: list[int]):
         """
         Отрисовка модели циклом по полигонам
         :param image:
@@ -227,11 +228,11 @@ class Renderer:
         :return:
         """
         for i in range(1, len(model.faces) + 1):
-            Renderer.draw_polygon(image, model, color, i)
-
+            Renderer.draw_polygon_face(image, model, color, i)
 
     @staticmethod
-    def determine_baricentric(x: int, x0: float, x1: float, x2:float, y: int, y0:float, y1:float, y2:float) -> np.array:
+    def determine_baricentric(x: int, x0: float, x1: float, x2: float, y: int, y0: float, y1: float,
+                              y2: float) -> np.array:
         '''
 
         :param x:
@@ -249,37 +250,129 @@ class Renderer:
         return np.array([lambda0, lambda1, lambda2])
 
     @staticmethod
-    def draw_triangle(image: np.ndarray, color: int, x0: float, x1: float, x2:float, y0:float, y1:float, y2:float) -> None:
+    def draw_triangle(image: np.ndarray, color: int, x0: float, x1: float, x2: float, y0: float, y1: float,
+                      y2: float) -> None:
         xmin = min(x0, x1, x2)
         ymin = min(y0, y1, y2)
         xmax = max(x0, x1, x2)
         ymax = max(y0, y1, y2)
 
-        if (xmin<0):
+        if xmin < 0:
             xmin = 0
-        if (ymin<0):
+        if ymin < 0:
             ymin = 0
 
-        if (xmax>image.shape[1]):
+        if xmax > image.shape[1]:
             xmax = image.shape[1]
-        if (ymax > image.shape[0]):
+        if ymax > image.shape[0]:
             ymax = image.shape[0]
-
 
         for y in np.arange(ymin, ymax):
             for x in np.arange(xmin, xmax):
                 baricentrics = Renderer.determine_baricentric(x, x0, x1, x2, y, y0, y1, y2)
-                #print(y, '  ', x, '  ', baricentrics)
+                # print(y, '  ', x, '  ', baricentrics)
 
-                if (all(lam>0 for lam in baricentrics)):
+                if all(lam > 0 for lam in baricentrics):
                     image[y, x] = color
 
+    @staticmethod
+    def draw_model_with_random_color_polygons(image: Image, model: ObjModelClass.ObjModel):
+        """
+        Отрисовка модели циклом по полигонам
+        :param image:
+        :param model:
+        :param color:
+        :return:
+        """
+        for i in range(1, len(model.faces) + 1):
+            Renderer.draw_model_triangle(image, model, i)
+
+    @staticmethod
+    def draw_model_triangle(image: np.ndarray, model: ObjModelClass.ObjModel, polygon_number: int)\
+            -> None:
+        point1, point2, point3 = model.get_points_by_index(polygon_number)
+        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+
+        x_min = min(point1.x, point2.x, point3.x)
+        y_min = min(point1.y, point2.y, point3.y)
+        x_max = max(point1.x, point2.x, point3.x)
+        y_max = max(point1.y, point2.y, point3.y)
+
+        if x_min < 0:
+            x_min = 0
+        if y_min < 0:
+            y_min = 0
+
+        if x_max > image.shape[1]:
+            x_max = image.shape[1]
+        if y_max > image.shape[0]:
+            y_max = image.shape[0]
+
+        random_color = colors.get_random_color()
+        for y in np.arange(y_min, y_max):
+            for x in np.arange(x_min, x_max):
+                baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
+                                                              point3.y)
+                if all(lam > 0 for lam in baricentrics):
+                    image[y, x] = random_color
+
+    @staticmethod
+    def calculate_normal_to_triangle(point1, point2,  point3) -> np.array:
+        vec1 = np.array([point2.x - point1.x, point2.y - point1.y, point2.z -point1.z])
+        vec2 = np.array([point2.x - point3.x, point2.y - point3.y, point2.z - point3.z])
+        result = np.cross(vec1, vec2)
+        return result
+
+    @staticmethod
+    def calculate_cos_to_triangle(point1, point2,  point3):
+        light_direction_vector = np.array([0.0, 0.0, 1.0])
+        normal_to_triangle = Renderer.calculate_normal_to_triangle(point1, point2, point3)
+        norma_normal_to_triangle = np.linalg.norm(normal_to_triangle)
+        norma_light = np.linalg.norm(light_direction_vector)
+        return (np.dot(normal_to_triangle, light_direction_vector)) / (norma_normal_to_triangle * norma_light)
 
 
+    @staticmethod
+    def draw_model_with_random_color_and_cos(image: Image, model: ObjModelClass.ObjModel):
+        """
+        Отрисовка модели циклом по полигонам
+        :param image:
+        :param model:
+        :return:
+        """
+        for i in range(1, len(model.faces) + 1):
+            Renderer.draw_model_triangle_with_cos(image, model, i)
+            print(f"Итерация {i}")
 
+    @staticmethod
+    def draw_model_triangle_with_cos(image: np.ndarray, model: ObjModelClass.ObjModel, polygon_number: int)\
+            -> None:
+        point1, point2, point3 = model.get_points_by_index(polygon_number)
+        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
 
+        x_min = min(point1.x, point2.x, point3.x)
+        y_min = min(point1.y, point2.y, point3.y)
+        x_max = max(point1.x, point2.x, point3.x)
+        y_max = max(point1.y, point2.y, point3.y)
 
+        if x_min < 0:
+            x_min = 0
+        if y_min < 0:
+            y_min = 0
 
+        if x_max > image.shape[1]:
+            x_max = image.shape[1]
+        if y_max > image.shape[0]:
+            y_max = image.shape[0]
 
-
-
+        random_color = colors.get_random_color()
+        for y in np.arange(y_min, y_max):
+            for x in np.arange(x_min, x_max):
+                baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
+                                                              point3.y)
+                if all(lam > 0 and Renderer.calculate_cos_to_triangle(point1, point2, point3) < 0 for lam in baricentrics):
+                    image[y, x] = random_color

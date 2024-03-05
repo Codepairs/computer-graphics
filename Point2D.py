@@ -13,8 +13,8 @@ class Point2D:
         :param offset:
         :return:
         """
-        x = int(self.x * scale)
-        y = int(self.y * scale)
+        x = self.x * scale
+        y = self.y * scale
         x += offset
         y += offset
         return Point2D(x, y)

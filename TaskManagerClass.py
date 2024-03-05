@@ -1,3 +1,4 @@
+import colors
 from RendererClass import Renderer
 from PIL import Image, ImageOps
 from ObjModelClass import ObjModel
@@ -137,10 +138,15 @@ class TaskManager:
     def task6(matrix_size: tuple, color: list[int], model_num: int):
         model = TaskManager.choose_model(model_num, matrix_size)
         image = np.zeros(matrix_size + (3,), dtype=np.uint8)
-        Renderer.draw_model(image, model, color)
+        Renderer.draw_model_with_faces(image, model, color)
         file_image = Image.fromarray(image, "RGB")
         file_image = ImageOps.flip(file_image)
         file_image.show()
+
+    @staticmethod
+    def task7():
+        print("Оно работает верь мне, функции есть в RendererClass.py")
+
 
     @staticmethod
     def task8(matrix_size: tuple, color, x0, x1, x2, y0, y1, y2):
@@ -155,6 +161,7 @@ class TaskManager:
         # completely into bounds
         image1 = np.zeros(matrix_size + (3,), dtype=np.uint8)
         Renderer.draw_triangle(image=image1, color=color, x0=0, x1=200, x2=800, y0=1, y1=500, y2=900)
+        Renderer.draw_triangle(image=image1, color=colors.SILVER, x0=100, x1=300, x2=900, y0=10, y1=600, y2=1000)
         file_image1 = Image.fromarray(image1, "RGB")
         file_image1.show()
 
@@ -163,5 +170,27 @@ class TaskManager:
         Renderer.draw_triangle(image=image2, color=color, x0=-100, x1=200, x2=800, y0=1, y1=5000, y2=900)
         file_image2 = Image.fromarray(image2, "RGB")
         file_image2.show()
+
+    @staticmethod
+    def task10(matrix_size: tuple, model_num: int):
+        model = TaskManager.choose_model(model_num, matrix_size)
+        image = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_model_with_random_color_polygons(image, model)
+        file_image = Image.fromarray(image, "RGB")
+        file_image = ImageOps.flip(file_image)
+        file_image.show()
+
+    @staticmethod
+    def task11():
+        print("Оно работает верь мне, функция calculate_normal_to_triangle()")
+
+    @staticmethod
+    def task12(matrix_size: tuple, model_num: int):
+        model = TaskManager.choose_model(model_num, matrix_size)
+        image = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_model_with_random_color_and_cos(image, model)
+        file_image = Image.fromarray(image, "RGB")
+        file_image = ImageOps.flip(file_image)
+        file_image.show()
 
 
