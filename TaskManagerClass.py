@@ -193,4 +193,13 @@ class TaskManager:
         file_image = ImageOps.flip(file_image)
         file_image.show()
 
+    @staticmethod
+    def task13(matrix_size: tuple, color: list[int], model_num: int):
+        model = TaskManager.choose_model(model_num, matrix_size)
+        image = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        Renderer.draw_model_with_light(image, color, model)
+        file_image = Image.fromarray(image, "RGB")
+        file_image = ImageOps.flip(file_image)
+        file_image.show()
+
 
