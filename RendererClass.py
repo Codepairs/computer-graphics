@@ -322,7 +322,7 @@ class Renderer:
     def calculate_normal_to_triangle(point1, point2,  point3) -> np.array:
         vec1 = np.array([point2.x - point1.x, point2.y - point1.y, point2.z -point1.z])
         vec2 = np.array([point2.x - point3.x, point2.y - point3.y, point2.z - point3.z])
-        result = np.cross(vec1, vec2)
+        result = -1 * np.cross(vec1, vec2)
         return result
 
     @staticmethod
@@ -423,3 +423,52 @@ class Renderer:
                                                               point3.y)
                 if all(lam >= 0 and light_cos < 0 for lam in baricentrics):
                     image[y, x] = color_with_light
+
+    @staticmethod
+    def draw_triangle_zbuffer(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel, polygon_number: int,
+                              zbuffer: np.ndarray):
+        point1, point2, point3 = model.get_points_by_index(polygon_number)
+        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+
+        x_min = min(point1.x, point2.x, point3.x)
+        y_min = min(point1.y, point2.y, point3.y)
+        x_max = max(point1.x, point2.x, point3.x)
+        y_max = max(point1.y, point2.y, point3.y)
+
+        if x_min < 0:
+            x_min = 0
+        if y_min < 0:
+            y_min = 0
+
+        if x_max > image.shape[1]:
+            x_max = image.shape[1]
+        if y_max > image.shape[0]:
+            y_max = image.shape[0]
+
+        light_cos = Renderer.calculate_cos_to_triangle(point1, point2, point3)
+        color_with_light = [-item * light_cos for item in color]
+
+        for y in np.arange(y_min, y_max):
+            for x in np.arange(x_min, x_max):
+                baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
+                                                              point3.y)
+                if all(lam >= 0 for lam in
+                       baricentrics) and light_cos < 0 :
+                    z = baricentrics[0] * point1.z + baricentrics[1] * point2.z + baricentrics[2] * point3.z
+                    if zbuffer[y, x] < z:
+                        image[y, x] = color_with_light
+                        zbuffer[y, x] = z
+
+    @staticmethod
+    def draw_model_with_zbuffer(image: Image, color: list[int], model: ObjModelClass.ObjModel, zbuffer: np.ndarray):
+        """
+        Отрисовка модели циклом по полигонам
+        :param image:
+        :param model:
+        :return:
+        """
+        for i in range(1, len(model.faces) + 1):
+            Renderer.draw_triangle_zbuffer(image, color, model, i, zbuffer)
+            # print(f"Итерация {i}")
