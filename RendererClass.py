@@ -211,9 +211,9 @@ class Renderer:
         :return:
         """
         point1, point2, point3 = model.get_points_by_index(polygon_number)
-        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point1 = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
         Renderer.algorithm_bresenham(image, point1.x, point1.y, point2.x, point2.y, color)
         Renderer.algorithm_bresenham(image, point2.x, point2.y, point3.x, point3.y, color)
         Renderer.algorithm_bresenham(image, point3.x, point3.y, point1.x, point1.y, color)
@@ -292,9 +292,9 @@ class Renderer:
     def draw_model_triangle(image: np.ndarray, model: ObjModelClass.ObjModel, polygon_number: int)\
             -> None:
         point1, point2, point3 = model.get_points_by_index(polygon_number)
-        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point1 = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
 
         x_min = min(point1.x, point2.x, point3.x)
         y_min = min(point1.y, point2.y, point3.y)
@@ -321,19 +321,34 @@ class Renderer:
 
     @staticmethod
     def calculate_normal_to_triangle(point0, point1, point2) -> np.array:
+
+        '''
         vec1 = np.array([point1.x - point2.x, point1.y - point2.y, point1.z - point2.z])
         vec2 = np.array([point1.x - point0.x, point1.y - point0.y, point1.z - point0.z])
-        result = np.cross(vec1, vec2)
+        '''
+
+        i = (point1.y - point0.y) * (point1.z - point2.z) - (point1.y - point2.y) * (point1.z - point0.z)
+        j = ((point1.x - point0.x) * (point1.z - point2.z) - (point1.x - point2.x) * (point1.z - point0.z))
+        k = (point1.x - point0.x) * (point1.y - point2.y) - (point1.x - point2.x) * (point1.y - point0.y)
+
+
+        result = [-i, -j, -k]
         return result
 
     @staticmethod
     def calculate_cos_to_triangle(point1, point2,  point3):
         light_direction_vector = np.array([0.0, 0.0, 1.0])
-        normal_to_triangle = Renderer.calculate_normal_to_triangle(point1, point2, point3)
-        norma_normal_to_triangle = np.linalg.norm(normal_to_triangle)
-        norma_light = np.linalg.norm(light_direction_vector)
-        return (np.dot(normal_to_triangle, light_direction_vector)) / (norma_normal_to_triangle * norma_light)
+        normal_coordinates = Renderer.calculate_normal_to_triangle(point1, point2, point3)
+        norma_normal_to_triangle = np.linalg.norm(normal_coordinates)
 
+        normalized_vector = normal_coordinates/norma_normal_to_triangle
+
+        norma_light = np.linalg.norm(light_direction_vector)
+        normalized_light = light_direction_vector/norma_light
+        #return (np.dot(normal_coordinates, light_direction_vector)) / (norma_normal_to_triangle * norma_light)
+        result = np.dot(normalized_vector, normalized_light)
+
+        return result
 
     @staticmethod
     def draw_model_with_random_color_and_cos(image: Image, model: ObjModelClass.ObjModel):
@@ -351,9 +366,9 @@ class Renderer:
     def draw_model_triangle_with_cos(image: np.ndarray, model: ObjModelClass.ObjModel, polygon_number: int)\
             -> None:
         point1, point2, point3 = model.get_points_by_index(polygon_number)
-        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point1 = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
 
         x_min = min(point1.x, point2.x, point3.x)
         y_min = min(point1.y, point2.y, point3.y)
@@ -397,9 +412,9 @@ class Renderer:
     def draw_model_triangle_with_light(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel, polygon_number: int)\
             -> None:
         point1, point2, point3 = model.get_points_by_index(polygon_number)
-        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point1 = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
 
         x_min = min(point1.x, point2.x, point3.x)
         y_min = min(point1.y, point2.y, point3.y)
@@ -429,14 +444,21 @@ class Renderer:
     def draw_triangle_zbuffer(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel, polygon_number: int,
                               zbuffer: np.ndarray):
         point1, point2, point3 = model.get_points_by_index(polygon_number)
-        point1 = point1.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point2 = point2.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
-        point3 = point3.transform(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        light_cos = Renderer.calculate_cos_to_triangle(point1, point2, point3)
+        if light_cos <= 0:
+            return
 
-        x_min = min(point1.x, point2.x, point3.x)
-        y_min = min(point1.y, point2.y, point3.y)
-        x_max = max(point1.x, point2.x, point3.x)
-        y_max = max(point1.y, point2.y, point3.y)
+        point1 = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point2 = point2.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+        point3 = point3.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+
+
+        #point1_scaled = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+
+        x_min = (min(point1.x, point2.x, point3.x))
+        y_min = (min(point1.y, point2.y, point3.y))
+        x_max = (max(point1.x, point2.x, point3.x))
+        y_max = (max(point1.y, point2.y, point3.y))
 
         if x_min < 0:
             x_min = 0
@@ -448,17 +470,20 @@ class Renderer:
         if y_max > image.shape[0]:
             y_max = image.shape[0]
 
-        light_cos = Renderer.calculate_cos_to_triangle(point1, point2, point3)
-        color_with_light = [-item * light_cos for item in color]
 
-        for y in np.arange(y_min, y_max):
-            for x in np.arange(x_min, x_max):
+        color_with_light = [item * light_cos for item in color]
+
+        for y in np.arange(y_min-1, y_max+1):
+            for x in np.arange(x_min-1, x_max+1):
                 baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
                                                               point3.y)
-                if all(lam >= 0 for lam in
-                       baricentrics) and light_cos < 0 :
-                    z = baricentrics[0] * point1.z + baricentrics[1] * point2.z + baricentrics[2] * point3.z
-                    if zbuffer[y, x] < z:
+                if all(lam >= 0 for lam in baricentrics):
+
+                    #z = int(baricentrics[0] * int(point1.z) + baricentrics[1] * int(point2.z) + baricentrics[2] * int(point3.z))
+                    z = int(baricentrics[0] * point1.z + baricentrics[1] * point2.z + baricentrics[2] * point3.z)
+
+                    if z < zbuffer[y, x]:
+
                         image[y, x] = color_with_light
                         zbuffer[y, x] = z
 

@@ -207,7 +207,7 @@ class TaskManager:
         model = TaskManager.choose_model(model_num, matrix_size)
         image = np.zeros(matrix_size + (3,), dtype=np.uint8)
 
-        z_buffer = np.full(matrix_size, 10 ** 6, dtype=np.uint8)
+        z_buffer = np.full(matrix_size, 100000, dtype=np.uint32)
         Renderer.draw_model_with_zbuffer(image, color, model, z_buffer)
 
         file_image = Image.fromarray(image, "RGB")
