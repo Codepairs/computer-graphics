@@ -243,8 +243,9 @@ class Renderer:
         :param y2:
         :return: np.array: lambda0, lambda1, lambda2
         '''
-        lambda0 = ((x1 - x2) * (y - y2) - (y1 - y2) * (x - x2)) / ((x1 - x2) * (y0 - y2) - (y1 - y2) * (x0 - x2))
-        lambda1 = ((x2 - x0) * (y - y0) - (y2 - y0) * (x - x0)) / ((x2 - x0) * (y1 - y0) - (y2 - y0) * (x1 - x0))
+        divider = ((x0 - x2) * (y1 - y2) - (x1 - x2) * (y0 - y2))
+        lambda0 = ((x - x2) * (y1 - y2) - (x1 - x2) * (y - y2)) / divider
+        lambda1 = ((x0 - x2) * (y - y2) - (x - x2) * (y0 - y2)) / divider
         lambda2 = 1.0 - lambda0 - lambda1
 
         return np.array([lambda0, lambda1, lambda2])
@@ -272,7 +273,7 @@ class Renderer:
                 baricentrics = Renderer.determine_baricentric(x, x0, x1, x2, y, y0, y1, y2)
                 # print(y, '  ', x, '  ', baricentrics)
 
-                if all(lam > 0 for lam in baricentrics):
+                if all(lam >= 0 for lam in baricentrics):
                     image[y, x] = color
 
     @staticmethod
@@ -315,14 +316,14 @@ class Renderer:
             for x in np.arange(x_min, x_max):
                 baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
                                                               point3.y)
-                if all(lam > 0 for lam in baricentrics):
+                if all(lam >= 0 for lam in baricentrics):
                     image[y, x] = random_color
 
     @staticmethod
-    def calculate_normal_to_triangle(point1, point2,  point3) -> np.array:
-        vec1 = np.array([point2.x - point1.x, point2.y - point1.y, point2.z -point1.z])
-        vec2 = np.array([point2.x - point3.x, point2.y - point3.y, point2.z - point3.z])
-        result = -1 * np.cross(vec1, vec2)
+    def calculate_normal_to_triangle(point0, point1, point2) -> np.array:
+        vec1 = np.array([point1.x - point2.x, point1.y - point2.y, point1.z - point2.z])
+        vec2 = np.array([point1.x - point0.x, point1.y - point0.y, point1.z - point0.z])
+        result = np.cross(vec1, vec2)
         return result
 
     @staticmethod
@@ -375,7 +376,7 @@ class Renderer:
             for x in np.arange(x_min, x_max):
                 baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
                                                               point3.y)
-                if all(lam > 0 and light_cos < 0 for lam in baricentrics):
+                if all(lam >= 0 and light_cos < 0 for lam in baricentrics):
                     image[y, x] = random_color
 
 

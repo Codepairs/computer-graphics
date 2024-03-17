@@ -12,10 +12,10 @@ def main():
     # TaskManager.task7()
     # TaskManager.task8((1000, 1000), color=colors.CYAN, x0=0, x1=200, x2=800, y0=1, y1=500, y2=900)
     # TaskManager.task9((1000,1000), color=colors.CYAN)
-    #TaskManager.task10((1000, 1000), model_num=4)
+    TaskManager.task10((1000, 1000), model_num=4)
     #TaskManager.task11()
     # TaskManager.task12((1000, 1000), model_num=2)
-    #TaskManager.task12((1000, 1000), model_num=4)
+    TaskManager.task12((1000, 1000), model_num=4)
     TaskManager.task13((1000, 1000), colors.SILVER, model_num=4)
     TaskManager.task14((1000, 1000), colors.SILVER, model_num=4)
 
