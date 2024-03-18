@@ -228,6 +228,16 @@ class TaskManager:
         file_image.show()
 
     @staticmethod
+    def task15(matrix_size:tuple, color: list[int], model_num: int, rotate_x: int, rotate_y: int, rotate_z:int):
+        model = TaskManager.choose_model_new(model_num, matrix_size)
+        image = np.zeros(matrix_size + (3,), dtype=np.uint8)
+        z_buffer = np.full(matrix_size, 100000, dtype=np.uint32)
+        Renderer.draw_with_rotation(image, color, model, z_buffer, rotate_x, rotate_y, rotate_z)
+        file_image = Image.fromarray(image, "RGB")
+        file_image = ImageOps.flip(file_image)
+        file_image.show()
+
+    @staticmethod
     def task16(matrix_size: tuple, color: list[int], model_num: int):
         model = TaskManager.choose_model_new(model_num, matrix_size)
         image = np.zeros(matrix_size + (3,), dtype=np.uint8)

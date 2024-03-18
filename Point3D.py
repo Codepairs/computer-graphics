@@ -7,7 +7,7 @@ class Point3D:
         self.y = y
         self.z = z
 
-    def transform_to_int(self, scale, offset_x, offset_y, offset_z):
+    def transform_to_int(self, scale, offset_x=0, offset_y=0, offset_z=0):
         """
         Масштабирование точки и добавление смещения
         :param scale:
