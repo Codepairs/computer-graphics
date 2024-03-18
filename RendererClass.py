@@ -516,17 +516,15 @@ class Renderer:
         point3.z+=model.offset_z
 
         point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
-        point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
-        point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
-
-        model.scale_coordinates(resolution=image.shape)
+        point2.x, point2.y = (point2.x / point2.z), (point2.y / point2.z)
+        point3.x, point3.y = (point3.x / point3.z), (point3.y / point3.z)
 
         point1.x, point1.y = (point1.x)*model.scale + model.offset_x, \
-                    ((point1.y)*model.scale + model.offset_y)
+                    ((point1.y)*model.scale + model.offset_y//2)
         point2.x, point2.y = ((point2.x) * model.scale + model.offset_x), (
-                    (point2.y) * model.scale + model.offset_y)
+                    (point2.y) * model.scale + model.offset_y//2)
         point3.x, point3.y = ((point3.x) * model.scale + model.offset_x), (
-                    (point3.y) * model.scale + model.offset_y)
+                    (point3.y) * model.scale + model.offset_y//2)
 
         #point1 = point1.scale_point_to_int(model.scale)#, model.offset_x, model.offset_y, model.offset_z)
         #point2 = point2.scale_point_to_int(model.scale)#, model.offset_x, model.offset_y, model.offset_z)

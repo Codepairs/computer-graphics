@@ -92,6 +92,22 @@ class ObjModel:
         #return scale
 
 
+    def scale_coordinate_to_z(self,  resolution: tuple, scale_modificator=2):
+        new_y = self.ymax /(self.zmax+self.offset_z)
+        new_x = self.xmax /(self.zmax+self.offset_z)
+        model_max = max(new_x, new_y)
+        limit = min(resolution)
+        scale = 1
+
+        while model_max * (scale * (scale_modificator ** 2)) < limit:
+            scale *= scale_modificator
+        #if model_max * scale * scale_modificator < limit:
+        #    scale *= scale_modificator
+
+        self.scale = scale
+
+
+
 
     def offset_coordinates(self, resolution: tuple):
         self.offset_x = resolution[0]//2

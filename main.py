@@ -18,7 +18,7 @@ def main():
     # TaskManager.task12((1000, 1000), model_num=4)
     # TaskManager.task13((1000, 1000), colors.SILVER, model_num=4)
     # TaskManager.task14((1000, 1000), colors.SILVER, model_num=4)
-    TaskManager.task16((5000, 5000), colors.SILVER, model_num=4)
+    TaskManager.task16((1000, 1000), colors.SILVER, model_num=4)
 
 if __name__ == '__main__':
     main()
