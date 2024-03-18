@@ -92,11 +92,17 @@ class ObjModel:
         #return scale
 
 
+
     def offset_coordinates(self, resolution: tuple):
-        self.offset_coordinate_x(resolution)
+        self.offset_x = resolution[0]//2
+        self.offset_y = resolution[1] // 2
+        self.offset_z = resolution[1] // 2
+        '''
         self.offset_coordinate_y(resolution)
         self.offset_coordinate_z(resolution)
+        '''
 
+    '''
     def offset_coordinate_x(self, resolution: tuple):
         limit = resolution[1]
         offset = 0
@@ -112,14 +118,11 @@ class ObjModel:
             offset += limit // 10
 
         self.offset_y = offset
+    '''
 
     def offset_coordinate_z(self, resolution: tuple):
         limit = resolution[1]
-        offset = 0
-        while abs(self.zmax) * self.scale + offset + limit // 10 < limit:
-            offset += limit // 10
-
-        self.offset_z = offset
+        self.offset_z = limit//2
 
 
     def parse_faces(self):

@@ -498,3 +498,87 @@ class Renderer:
         for i in range(1, len(model.faces) + 1):
             Renderer.draw_triangle_zbuffer(image, color, model, i, zbuffer)
             # print(f"Итерация {i}")
+
+
+
+
+
+    @staticmethod
+    def draw_triangle_projective_transformation(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel, polygon_number: int,
+                              zbuffer: np.ndarray):
+        point1, point2, point3 = model.get_points_by_index(polygon_number)
+        light_cos = Renderer.calculate_cos_to_triangle(point1, point2, point3)
+        if light_cos <= 0:
+            return
+
+        point1.z+=model.offset_z
+        point2.z+=model.offset_z
+        point3.z+=model.offset_z
+
+        point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
+        point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
+        point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
+
+        model.scale_coordinates(resolution=image.shape)
+
+        point1.x, point1.y = (point1.x)*model.scale + model.offset_x, \
+                    ((point1.y)*model.scale + model.offset_y)
+        point2.x, point2.y = ((point2.x) * model.scale + model.offset_x), (
+                    (point2.y) * model.scale + model.offset_y)
+        point3.x, point3.y = ((point3.x) * model.scale + model.offset_x), (
+                    (point3.y) * model.scale + model.offset_y)
+
+        #point1 = point1.scale_point_to_int(model.scale)#, model.offset_x, model.offset_y, model.offset_z)
+        #point2 = point2.scale_point_to_int(model.scale)#, model.offset_x, model.offset_y, model.offset_z)
+        #point3 = point3.scale_point_to_int(model.scale)#, model.offset_x, model.offset_y, model.offset_z)
+
+        #point1_scaled = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
+
+        x_min = int(min(point1.x, point2.x, point3.x))
+        y_min = int(min(point1.y, point2.y, point3.y))
+        x_max = int(max(point1.x, point2.x, point3.x))
+        y_max = int(max(point1.y, point2.y, point3.y))
+
+        if x_min < 0:
+            x_min = 0
+        if y_min < 0:
+            y_min = 0
+
+        if x_max > image.shape[1]:
+            x_max = image.shape[1]-1
+        if y_max > image.shape[0]:
+            y_max = image.shape[0]-1
+
+
+        color_with_light = [item * light_cos for item in color]
+
+        for y in np.arange(y_min-1, y_max+1):
+            for x in np.arange(x_min-1, x_max+1):
+                baricentrics = Renderer.determine_baricentric(x, point1.x, point2.x, point3.x, y, point1.y, point2.y,
+                                                              point3.y)
+                if all(lam >= 0 for lam in baricentrics):
+
+                    #z = int(baricentrics[0] * int(point1.z) + baricentrics[1] * int(point2.z) + baricentrics[2] * int(point3.z))
+                    z = int(baricentrics[0] * point1.z + baricentrics[1] * point2.z + baricentrics[2] * point3.z)
+                    if z < zbuffer[y, x]:
+
+                        image[y, x] = color_with_light
+                        zbuffer[y, x] = z
+
+
+
+
+    @staticmethod
+    def draw_model_projective_transformation(image: Image, color: list[int], model: ObjModelClass.ObjModel, zbuffer: np.ndarray):
+        """
+        Отрисовка модели циклом по полигонам
+        :param image:
+        :param model:
+        :return:
+        """
+        for i in range(1, len(model.faces) + 1):
+            Renderer.draw_triangle_projective_transformation(image, color, model, i, zbuffer)
+            # print(f"Итерация {i}")
+
+
+

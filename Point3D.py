@@ -22,6 +22,18 @@ class Point3D:
         z += offset_z
         return Point3D(x, y, z)
 
+    def scale_point_to_int(self, scale):
+        """
+        Масштабирование точки и добавление смещения
+        :param scale:
+        :param offset:
+        :return:
+        """
+        x = int(self.x * scale)
+        y = int(self.y * scale)
+        z = int(self.z * scale)
+        return Point3D(x, y, z)
+
     def transform_to_float(self, scale, offset_x, offset_y, offset_z):
         x = (self.x * scale)
         y = (self.y * scale)
