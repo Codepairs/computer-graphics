@@ -25,7 +25,6 @@ class TaskManager:
         model_to_render.fill_coordinates_info()
         model_to_render.offset_coordinates(resolution)
         model_to_render.scale_coordinate_to_z(resolution)
-
         return model_to_render
 
 
