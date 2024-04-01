@@ -1,5 +1,5 @@
 import colors
-from RendererClass import Renderer
+import RendererClass as Renderer
 from PIL import Image, ImageOps
 from ObjModelClass import ObjModel
 import numpy as np
