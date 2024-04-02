@@ -93,12 +93,13 @@ class ObjModel:
 
 
     def scale_coordinate_to_z(self,  resolution: tuple, scale_modificator=2):
-        new_y = self.ymax /(self.zmax+self.offset_z)
-        new_x = self.xmax /(self.zmax+self.offset_z)
+        new_y = self.ymean /self.zmean
+        new_x = self.xmean /self.zmean
         model_max = max(new_x, new_y)
         limit = min(resolution)
         scale = 1
-
+        if model_max*scale_modificator> limit:
+            scale_modificator = 1/scale_modificator
         while model_max * (scale * (scale_modificator ** 2)) < limit:
             scale *= scale_modificator
         #if model_max * scale * scale_modificator < limit:

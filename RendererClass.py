@@ -228,11 +228,19 @@ def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: flo
     #print(f"\t\tcos time: {cos_time2 - cos_time1}")
     if light_cos <= 0:
         return
+    scale = 0.5 # model.scale
+    offset_z = 500
+    p_x0 = (x0 / z0) * scale + offset_z
+    p_x1 = (x1 / z1) * scale + offset_z
+    p_x2 = (x2 / z2) * scale + offset_z
+    p_y0 = (y0 / z0) * scale + offset_z
+    p_y1 = (y1 / z1) * scale + offset_z
+    p_y2 = (y2 / z2) * scale + offset_z
     #prep_time1 = time()
-    x_min = int(min(x0, x1, x2))
-    y_min = int(min(y0, y1, y2))
-    x_max = int(max(x0, x1, x2))
-    y_max = int(max(y0, y1, y2))
+    x_min = int(min(p_x0, p_x1, p_x2))
+    y_min = int(min(p_y0, p_y1, p_y2))
+    x_max = int(max(p_x0, p_x1, p_x2))
+    y_max = int(max(p_y0, p_y1, p_y2))
 
     if x_min < 0:
         x_min = 0
@@ -245,7 +253,7 @@ def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: flo
         y_max = image.shape[0] - 1
 
     color_with_light = [item * light_cos for item in color]
-    divider = ((x0 - x1) * (y1 - y2) - (x1 - x2) * (y1 - y2))
+    divider = ((p_x0 - p_x1) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y1 - p_y2))
     if (not divider):
         return
     #prep_time2 = time()
@@ -260,7 +268,7 @@ def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: flo
         for x in np.arange(x_min, x_max):
             #single_iter_time1 = time()
 
-            baricentrics = determine_baricentric(x, x0, x1, x2, y, y0, y1, y2, divider)
+            baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
             if (baricentrics[0]>0 and baricentrics[1]>0 and baricentrics[2]>0):
                 z = int(baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
                 if z < z_buffer[y, x]:
@@ -334,9 +342,9 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
     point3.x, point3.y = (point3.x * model.scale + model.offset_x), (
             point3.y * model.scale + model.offset_y)
     '''
-    point1.z += model.offset_z
-    point2.z += model.offset_z
-    point3.z += model.offset_z
+    #point1.z += model.offset_z
+    #point2.z += model.offset_z
+    #point3.z += model.offset_z
 
     x0 = point1.x
     x1 = point2.x
@@ -344,9 +352,12 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
     y0 = point1.y
     y1 = point2.y
     y2 = point3.y
-    z0 = point1.z
-    z1 = point2.z
-    z2 = point3.z
+    z0 = point1.z + 500
+    z1 = point2.z + 500
+    z2 = point3.z + 500
+
+
+
 
     #points_time2 = time()
     #print(f"\t points time: {points_time2 - points_time1}")
@@ -369,8 +380,8 @@ def draw_model_projective_transformation(image: Image, color: list[int], model: 
     total_faces = len(model.faces)
     print("total faces: ", total_faces)
     for i in range(1, total_faces + 1):
-        #start_time = time()
+        start_time = time()
         draw_triangle_projective_transformation(image, color, model, i, zbuffer)
-        #end_time = time()
-        #print(f"Итерация {i}, время {end_time-start_time}")
+        end_time = time()
+        print(f"Итерация {i}, время {end_time-start_time}")
 
