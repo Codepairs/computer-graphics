@@ -22,7 +22,7 @@ def main():
     #TaskManager.task15((1500, 1500), colors.SILVER, model_num=4, rotate_x=0, rotate_y=90, rotate_z=0)
     # TaskManager.task15((1500, 1500), colors.SILVER, model_num=4, rotate_x=0, rotate_y=135, rotate_z=0)
 
-    TaskManager.task16((1000, 1000), colors.SILVER, model_num=2)
+    TaskManager.task16((1000, 1000), colors.SILVER, model_num=1)
 
 if __name__ == '__main__':
     main()

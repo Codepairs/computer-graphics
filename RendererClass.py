@@ -77,10 +77,10 @@ def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1:
     '''
 
     i = (y1 - y0) * (z1 - z2) - (y1 - y2) * (z1 - z0)
-    j = ((x1 - x0) * (z1 - z2) - (x1 - x2) * (z1 - z0))
+    j = -((x1 - x0) * (z1 - z2) - (x1 - x2) * (z1 - z0))
     k = (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)
 
-    result = [-i, -j, -k]
+    result = [i, j, k]
     return result
 
 
@@ -226,16 +226,17 @@ def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: flo
     light_cos = calculate_cos_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2, light_direction_vector)
     #cos_time2 = time()
     #print(f"\t\tcos time: {cos_time2 - cos_time1}")
-    if light_cos <= 0:
+    if light_cos > 0:
         return
-    scale = 0.5 # model.scale
-    offset_z = 500
-    p_x0 = (x0 / z0) * scale + offset_z
-    p_x1 = (x1 / z1) * scale + offset_z
-    p_x2 = (x2 / z2) * scale + offset_z
-    p_y0 = (y0 / z0) * scale + offset_z
-    p_y1 = (y1 / z1) * scale + offset_z
-    p_y2 = (y2 / z2) * scale + offset_z
+    scale = 2000 # model.scale
+    offset_y = 100
+    offset_x = 500
+    p_x0 = (x0 / z0) * scale + offset_x
+    p_x1 = (x1 / z1) * scale + offset_x
+    p_x2 = (x2 / z2) * scale + offset_x
+    p_y0 = (y0 / z0) * scale + offset_y
+    p_y1 = (y1 / z1) * scale + offset_y
+    p_y2 = (y2 / z2) * scale + offset_y
     #prep_time1 = time()
     x_min = int(min(p_x0, p_x1, p_x2))
     y_min = int(min(p_y0, p_y1, p_y2))
@@ -253,17 +254,10 @@ def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: flo
         y_max = image.shape[0] - 1
 
     color_with_light = [item * light_cos for item in color]
-    divider = ((p_x0 - p_x1) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y1 - p_y2))
+    divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
     if (not divider):
         return
-    #prep_time2 = time()
 
-    #print(f"\t\tpreparation time: {prep_time2 - prep_time1}")
-
-    #iterations = (y_max-y_min)*(x_max - x_min)
-    #iter_time1 = time()
-    #print(f"\t\t time: {prep_time2 - prep_time1}")
-    #max_iter_time = 0
     for y in np.arange(y_min, y_max):
         for x in np.arange(x_min, x_max):
             #single_iter_time1 = time()
@@ -327,24 +321,7 @@ def draw_with_rotation(image: Image, color: list[int], model: ObjModelClass.ObjM
 def draw_triangle_projective_transformation(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel,
                                             polygon_number: int,
                                             zbuffer: np.ndarray):
-    #points_time1 = time()
     point1, point2, point3 = model.get_points_by_index(polygon_number)
-
-    '''
-    point1.x, point1.y = (point1.x / point1.z), (point1.y / point1.z)
-    point2.x, point2.y = (point2.x / point2.z), (point2.y / point2.z)
-    point3.x, point3.y = (point3.x / point3.z), (point3.y / point3.z)
-
-    point1.x, point1.y = point1.x * model.scale + model.offset_x, \
-        (point1.y * model.scale + model.offset_y)
-    point2.x, point2.y = (point2.x * model.scale + model.offset_x), (
-            point2.y * model.scale + model.offset_y)
-    point3.x, point3.y = (point3.x * model.scale + model.offset_x), (
-            point3.y * model.scale + model.offset_y)
-    '''
-    #point1.z += model.offset_z
-    #point2.z += model.offset_z
-    #point3.z += model.offset_z
 
     x0 = point1.x
     x1 = point2.x
@@ -352,20 +329,11 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
     y0 = point1.y
     y1 = point2.y
     y2 = point3.y
-    z0 = point1.z + 500
-    z1 = point2.z + 500
-    z2 = point3.z + 500
+    z0 = point1.z + 0.2
+    z1 = point2.z + 0.2
+    z2 = point3.z + 0.2
 
-
-
-
-    #points_time2 = time()
-    #print(f"\t points time: {points_time2 - points_time1}")
-
-    #render_time1 = time()
     draw_with_light(zbuffer, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, color)
-    #render_time2 = time()
-    #print(f"\t render time: {render_time2 - render_time1}")
 
 
 

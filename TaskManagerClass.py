@@ -52,10 +52,10 @@ class TaskManager:
 
     @staticmethod
     def task16(matrix_size: tuple, color: list[int], model_num: int):
-        model = TaskManager.choose_model_new(model_num, matrix_size)
+        model = TaskManager.choose_model(model_num, matrix_size)
         image = np.zeros(matrix_size + (3,), dtype=np.uint8)
 
-        z_buffer = np.full(matrix_size, 100000, dtype=np.uint32)
+        z_buffer = np.full(matrix_size, 100000, dtype=np.float32)
         Renderer.draw_model_projective_transformation(image, color, model, z_buffer)
 
         file_image = Image.fromarray(image, "RGB")
