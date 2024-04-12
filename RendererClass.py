@@ -87,27 +87,20 @@ def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1:
 
 
 def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float, light_direction_vector=None) -> float:
-    if light_direction_vector is None:
-        light_direction_vector = [0.0, 0.0, 0.1]
+                          y2: float, z0: float, z1: float, z2: float, light_direction_vector=[0.0, 0.0, 1.]) -> float:
     normal_coordinates = calculate_normal_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2)
-    norma_normal_to_triangle = np.linalg.norm(normal_coordinates)
 
+    norma_normal_to_triangle = np.linalg.norm(normal_coordinates)
     normalized_vector = normal_coordinates / norma_normal_to_triangle
 
     norma_light = np.linalg.norm(light_direction_vector)
     normalized_light = light_direction_vector / norma_light
-    # return (np.dot(normal_coordinates, light_direction_vector)) / (norma_normal_to_triangle * norma_light)
+
     result = np.dot(normalized_vector, normalized_light)
 
     return result
 
 def calculate_new_point_position(model, point1, point2, point3, R):
-
-
-    point1 = point1.transform_to_int(model.scale)
-    point2 = point2.transform_to_int(model.scale)
-    point3 = point3.transform_to_int(model.scale)
 
     point1_matrix = np.array([
         point1.x,
@@ -148,29 +141,13 @@ def calculate_new_point_position(model, point1, point2, point3, R):
     point3.y = result3[1]
     point3.z = result3[2]
 
-    point1.x += model.offset_x
-    point1.y += model.offset_y
-    point1.z += model.offset_z
-
-    point2.x += model.offset_x
-    point2.y += model.offset_y
-    point2.z += model.offset_z
-
-    point3.x += model.offset_x
-    point3.y += model.offset_y
-    point3.z += model.offset_z
 
     return point1, point2, point3
 
 
 def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1: float,
                           y2: float, z0: float, z1: float, z2: float, image, z_buffer, color):
-    light_direction_vector = np.array([0.0, 0.0, 1.0])
-
-    #cos_time1 = time()
-    light_cos = calculate_cos_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2, light_direction_vector)
-    #cos_time2 = time()
-    #print(f"\t\tcos time: {cos_time2 - cos_time1}")
+    light_cos = calculate_cos_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2)
     if light_cos > 0:
         return
 
@@ -182,7 +159,7 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
     p_y0 = (y0 / z0) * scale + offset_y
     p_y1 = (y1 / z1) * scale + offset_y
     p_y2 = (y2 / z2) * scale + offset_y
-    #prep_time1 = time()
+
     x_min = int(min(p_x0, p_x1, p_x2) - 1)
     y_min = int(min(p_y0, p_y1, p_y2) - 1)
     x_max = int(max(p_x0, p_x1, p_x2) + 1)
@@ -206,21 +183,12 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
 
     for y in np.arange(y_min, y_max):
         for x in np.arange(x_min, x_max):
-            #single_iter_time1 = time()
-
             baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
-            if (baricentrics[0]>=0 and baricentrics[1]>=0 and baricentrics[2]>=0):
-                z = int(baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
+            if all(bar >= 0 for bar in baricentrics):
+                z = (baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
                 if z < z_buffer[y, x]:
                     image[y, x] = color_with_light
                     z_buffer[y, x] = z
-            #single_iter_time2 = time()
-            #max_iter_time = max(max_iter_time, single_iter_time2-single_iter_time1)
-
-
-    #iter_time2 = time()
-    #print(f"\t\t total iterations: {iterations},  time: {iter_time2 - iter_time1} \n\t\tmax iter time: {max_iter_time}")
-
 
 def draw_with_rotation_by_index(image: Image, color: list[int], model: ObjModelClass.ObjModel, z_buffer: np.ndarray,
                                 R: np.array, polygon_number: int):
@@ -269,10 +237,15 @@ def draw_with_rotation(image: Image, color: list[int], model: ObjModelClass.ObjM
                        rotate_x: int, rotate_y: int, rotate_z: int):
 
     R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
-    model.offset_y -=500  # зачем?
+    total_faces = len(model.faces)
+    print("total faces: ", total_faces)
     for i in range(1, len(model.faces) + 1):
+        start_time = time()
+
         draw_with_rotation_by_index(image, color, model, z_buffer, R, i)
 
+        end_time = time()
+        print(f"Итерация {i} / {total_faces}, время {end_time - start_time}")
 
 def draw_triangle_projective_transformation(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel,
                                             polygon_number: int,
@@ -306,7 +279,9 @@ def draw_model_projective_transformation(image: Image, color: list[int], model: 
     print("total faces: ", total_faces)
     for i in range(1, total_faces + 1):
         start_time = time()
+
         draw_triangle_projective_transformation(image, color, model, i, zbuffer)
+
         end_time = time()
         print(f"Итерация {i} / {total_faces}, время {end_time-start_time}")
 
