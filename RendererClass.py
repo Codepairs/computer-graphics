@@ -45,7 +45,7 @@ def algorithm_bresenham(image: np.ndarray, x0, y0, x1, y1, color) -> None:
             image[y, x] = color
 
 
-@njit
+@njit()
 def determine_baricentric(x: int, x0: float, x1: float, x2: float, y: int, y0: float, y1: float,
                           y2: float, divider: float) -> np.array:
     '''
@@ -68,8 +68,9 @@ def determine_baricentric(x: int, x0: float, x1: float, x2: float, y: int, y0: f
 
 
 
+@njit()
 def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float) -> np.array:
+                          y2: float, z0: float, z1: float, z2: float) -> list:
 
     '''
     vec1 = np.array([point0.x - point1.x, point0.y - point1.y, point0.z - point1.z])
@@ -80,8 +81,9 @@ def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1:
     j = -((x1 - x0) * (z1 - z2) - (x1 - x2) * (z1 - z0))
     k = (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)
 
-    result = [i, j, k]
+    result = [i, j, k] #np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
     return result
+
 
 
 def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: float,
@@ -100,65 +102,8 @@ def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: fl
 
     return result
 
-
-def draw_triangle_zbuffer(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel, polygon_number: int,
-                          zbuffer: np.ndarray):
-    point0, point1, point2 = model.get_points_by_index(polygon_number)
-    light_cos = calculate_cos_to_triangle(point0, point1, point2)
-    if light_cos <= 0:
-        return
-
-    point0 = point0.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
-    point1 = point1.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
-    point2 = point2.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
-
-    # point1_scaled = point0.transform_to_int(model.scale, model.offset_x, model.offset_y, model.offset_z)
-
-    x_min = (min(point0.x, point1.x, point2.x))
-    y_min = (min(point0.y, point1.y, point2.y))
-    x_max = (max(point0.x, point1.x, point2.x))
-    y_max = (max(point0.y, point1.y, point2.y))
-
-    if x_min < 0:
-        x_min = 0
-    if y_min < 0:
-        y_min = 0
-
-    if x_max > image.shape[1]:
-        x_max = image.shape[1]
-    if y_max > image.shape[0]:
-        y_max = image.shape[0]
-
-    color_with_light = [item * light_cos for item in color]
-    divider = ((point0.x - point1.x) * (point1.y - point2.y) - (point1.x - point2.x) * (point1.y - point2.y))
-    for y in np.arange(y_min - 1, y_max + 1):
-        for x in np.arange(x_min - 1, x_max + 1):
-            baricentrics = determine_baricentric(x, point0.x, point1.x, point2.x, y, point0.y, point1.y,
-                                                          point2.y, divider)
-            if all(lam >= 0 for lam in baricentrics):
-
-                # z = int(baricentrics[0] * int(point0.z) + baricentrics[1] * int(point1.z) + baricentrics[2] * int(point2.z))
-                z = int(baricentrics[0] * point0.z + baricentrics[1] * point1.z + baricentrics[2] * point2.z)
-
-                if z < zbuffer[y, x]:
-                    image[y, x] = color_with_light
-                    zbuffer[y, x] = z
-
-
-def draw_model_with_zbuffer(image: Image, color: list[int], model: ObjModelClass.ObjModel, zbuffer: np.ndarray):
-    """
-    Отрисовка модели циклом по полигонам
-    :param image:
-    :param model:
-    :return:
-    """
-    for i in range(1, len(model.faces) + 1):
-        draw_triangle_zbuffer(image, color, model, i, zbuffer)
-        # print(f"Итерация {i}")
-
-
 def calculate_new_point_position(model, point1, point2, point3, R):
-    model.scale = 6
+
 
     point1 = point1.transform_to_int(model.scale)
     point2 = point2.transform_to_int(model.scale)
@@ -238,10 +183,10 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
     p_y1 = (y1 / z1) * scale + offset_y
     p_y2 = (y2 / z2) * scale + offset_y
     #prep_time1 = time()
-    x_min = int(min(p_x0, p_x1, p_x2))
-    y_min = int(min(p_y0, p_y1, p_y2))
-    x_max = int(max(p_x0, p_x1, p_x2))
-    y_max = int(max(p_y0, p_y1, p_y2))
+    x_min = int(min(p_x0, p_x1, p_x2) - 1)
+    y_min = int(min(p_y0, p_y1, p_y2) - 1)
+    x_max = int(max(p_x0, p_x1, p_x2) + 1)
+    y_max = int(max(p_y0, p_y1, p_y2) + 1)
 
     if x_min < 0:
         x_min = 0
@@ -253,7 +198,8 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
     if y_max > image.shape[0]:
         y_max = image.shape[0] - 1
 
-    color_with_light = [item * light_cos for item in color]
+    color_with_light = [abs(item * light_cos) for item in color]
+
     divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
     if (not divider):
         return
@@ -263,7 +209,7 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
             #single_iter_time1 = time()
 
             baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
-            if (baricentrics[0]>0 and baricentrics[1]>0 and baricentrics[2]>0):
+            if (baricentrics[0]>=0 and baricentrics[1]>=0 and baricentrics[2]>=0):
                 z = int(baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
                 if z < z_buffer[y, x]:
                     image[y, x] = color_with_light
@@ -280,7 +226,17 @@ def draw_with_rotation_by_index(image: Image, color: list[int], model: ObjModelC
                                 R: np.array, polygon_number: int):
     point1, point2, point3 = model.get_points_by_index(polygon_number)
     point1, point2, point3 = calculate_new_point_position(model, point1, point2, point3, R)
-    draw_with_light(z_buffer, point1, point2, point3, image, color)
+    offset_z = model.offset_z * 2
+    x0 = point1.x
+    x1 = point2.x
+    x2 = point3.x
+    y0 = point1.y
+    y1 = point2.y
+    y2 = point3.y
+    z0 = point1.z + offset_z
+    z1 = point2.z + offset_z
+    z2 = point3.z + offset_z
+    draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, z_buffer, color)
 
 
 def calculate_matrix_r(rotate_x, rotate_y, rotate_z) -> np.array:
@@ -313,7 +269,7 @@ def draw_with_rotation(image: Image, color: list[int], model: ObjModelClass.ObjM
                        rotate_x: int, rotate_y: int, rotate_z: int):
 
     R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
-    model.offset_y -=500
+    model.offset_y -=500  # зачем?
     for i in range(1, len(model.faces) + 1):
         draw_with_rotation_by_index(image, color, model, z_buffer, R, i)
 
@@ -352,5 +308,5 @@ def draw_model_projective_transformation(image: Image, color: list[int], model: 
         start_time = time()
         draw_triangle_projective_transformation(image, color, model, i, zbuffer)
         end_time = time()
-        print(f"Итерация {i}, время {end_time-start_time}")
+        print(f"Итерация {i} / {total_faces}, время {end_time-start_time}")
 
