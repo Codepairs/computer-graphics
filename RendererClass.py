@@ -218,8 +218,8 @@ def calculate_new_point_position(model, point1, point2, point3, R):
     return point1, point2, point3
 
 
-def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float, image, color):
+def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1: float,
+                          y2: float, z0: float, z1: float, z2: float, image, z_buffer, color):
     light_direction_vector = np.array([0.0, 0.0, 1.0])
 
     #cos_time1 = time()
@@ -228,7 +228,7 @@ def draw_with_light(z_buffer,x0: float, x1: float, x2: float, y0: float, y1: flo
     #print(f"\t\tcos time: {cos_time2 - cos_time1}")
     if light_cos > 0:
         return
-    scale = 2000 # model.scale
+
     offset_y = 100
     offset_x = 500
     p_x0 = (x0 / z0) * scale + offset_x
@@ -323,17 +323,18 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
                                             zbuffer: np.ndarray):
     point1, point2, point3 = model.get_points_by_index(polygon_number)
 
+    offset_z = model.offset_z * 2
     x0 = point1.x
     x1 = point2.x
     x2 = point3.x
     y0 = point1.y
     y1 = point2.y
     y2 = point3.y
-    z0 = point1.z + 0.2
-    z1 = point2.z + 0.2
-    z2 = point3.z + 0.2
+    z0 = point1.z + offset_z
+    z1 = point2.z + offset_z
+    z2 = point3.z + offset_z
 
-    draw_with_light(zbuffer, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, color)
+    draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, zbuffer, color)
 
 
 

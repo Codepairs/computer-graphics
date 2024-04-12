@@ -92,20 +92,28 @@ class ObjModel:
         #return scale
 
 
+    def determine_z_offset(self,  resolution: tuple, scale_modificator=2):
+        offset_z = 0
+        lowest_z = self.zmin
+
+        if (lowest_z >= 0):
+            return
+        lowest_z = abs(self.zmin * 3)
+        self.offset_z = lowest_z
+
+
+
+
     def scale_coordinate_to_z(self,  resolution: tuple, scale_modificator=2):
-        new_y = self.ymean /self.zmean
-        new_x = self.xmean /self.zmean
-        model_max = max(new_x, new_y)
         limit = min(resolution)
         scale = 1
-        if model_max*scale_modificator> limit:
-            scale_modificator = 1/scale_modificator
-        while model_max * (scale * (scale_modificator ** 2)) < limit:
-            scale *= scale_modificator
-        #if model_max * scale * scale_modificator < limit:
-        #    scale *= scale_modificator
+        figure_y_area = abs(self.ymax - self.ymin)
+        figure_z_area = abs(self.zmax - self.zmin) + self.offset_z
 
+        while ( (figure_y_area/figure_z_area) * scale * scale_modificator < limit ):
+            scale *= scale_modificator
         self.scale = scale
+
 
 
 
