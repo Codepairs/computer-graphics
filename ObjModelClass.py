@@ -16,6 +16,7 @@ class ObjModel:
         self.offset_z = offset
         self.faces = self.parse_faces()
         self.vertices = self.parse_vertices()
+        #self.texture_numbers = self.parse_textures()
 
         self.ymax = 0
         self.ymin = 0
@@ -98,7 +99,7 @@ class ObjModel:
 
         if (lowest_z >= 0):
             return
-        lowest_z = abs(self.zmin * 3)
+        lowest_z = abs(self.zmax - self.zmin) * 3
         self.offset_z = lowest_z
 
 
@@ -108,9 +109,10 @@ class ObjModel:
         limit = min(resolution)
         scale = 1
         figure_y_area = abs(self.ymax - self.ymin)
+        figure_x_area = abs(self.xmax - self.xmin)
         figure_z_area = abs(self.zmax - self.zmin) + self.offset_z
 
-        while ( (figure_y_area/figure_z_area) * scale * scale_modificator < limit ):
+        while ( (max(figure_y_area, figure_x_area)/figure_z_area) * scale * scale_modificator**2 < limit ):
             scale *= scale_modificator
         self.scale = scale
 
@@ -158,14 +160,44 @@ class ObjModel:
         with open(self.obj_filepath, 'r') as f:
             lines = f.readlines()
             faces = []
+            has_slashes = False
+            for line in lines:
+                if '/' in line:
+                    has_slashes = True
+                    break
+
             for line in lines:
                 if line.startswith('f '):
-                    face = [int(val.split('/')[0]) for val in line.split()[1:]]
-                    faces.append(face)
+                    if has_slashes:
+                        face = [int(val.split('/')[0]) for val in line.split()[1:]]
+                    else:
+                        face = [int(val) for val in line.split()[1:]]
+                    if len(face)>3:
+                        faces.append([face[0], face[2], face[3]])
+                    faces.append([face[0], face[1], face[2]])
+
 
             #Вот тут падает из-за разной размерности полигонов
             #return np.array(faces)
             return faces
+
+    def parse_textures(self):
+        with open(self.obj_filepath, 'r') as f:
+            lines = f.readlines()
+            textures = []
+            for line in lines:
+                if line.startswith('f '):
+                    #print(line)
+                    for val in line.split()[1:]:
+                        #print(val)
+                        texture = int(val.split('/')[1])
+                        #print(texture)
+                    #texture = [int(val.split('/')[1]) for val in line.split()[1:]]
+                    textures.append(texture)
+
+            #Вот тут падает из-за разной размерности полигонов
+            #return np.array(faces)
+            return textures
 
     def get_points_by_index(self, vertices_index: int):
         """
@@ -204,7 +236,3 @@ class ObjModel:
 
     def set_path_to_obj_file(self, obj_file):
         self.obj_filepath = obj_file
-
-
-model = ObjModel(obj_file='obj-files/model_1.obj', scale=3000, offset=500)
-point1, point2, point3 = model.get_points_by_index(1)

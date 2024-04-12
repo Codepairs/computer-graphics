@@ -45,7 +45,6 @@ def algorithm_bresenham(image: np.ndarray, x0, y0, x1, y1, color) -> None:
             image[y, x] = color
 
 
-@njit()
 def determine_baricentric(x: int, x0: float, x1: float, x2: float, y: int, y0: float, y1: float,
                           y2: float, divider: float) -> np.array:
     '''
@@ -63,12 +62,11 @@ def determine_baricentric(x: int, x0: float, x1: float, x2: float, y: int, y0: f
     lambda1 = ((x0 - x2) * (y - y2) - (x - x2) * (y0 - y2)) / divider
     lambda2 = 1.0 - lambda0 - lambda1
 
-    return np.array([lambda0, lambda1, lambda2])
+    return (lambda0, lambda1, lambda2)
 
 
 
 
-@njit()
 def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: float,
                           y2: float, z0: float, z1: float, z2: float) -> list:
 
@@ -146,12 +144,11 @@ def calculate_new_point_position(model, point1, point2, point3, R):
 
 
 def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float, image, z_buffer, color):
+                          y2: float, z0: float, z1: float, z2: float, image, z_buffer, color, i):
     light_cos = calculate_cos_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2)
     if light_cos > 0:
         return
-
-    offset_y = 100
+    offset_y = 200
     offset_x = 500
     p_x0 = (x0 / z0) * scale + offset_x
     p_x1 = (x1 / z1) * scale + offset_x
@@ -178,16 +175,17 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
     color_with_light = [abs(item * light_cos) for item in color]
 
     divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
-    if (not divider):
+    if (divider==0):
         return
-
-    for y in np.arange(y_min, y_max):
-        for x in np.arange(x_min, x_max):
+    z = 0
+    for y in np.arange(y_min-1, y_max+1):
+        for x in np.arange(x_min-1, x_max+1):
             baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
-            if all(bar >= 0 for bar in baricentrics):
+            if baricentrics[0]>=0 and baricentrics[1]>=0 and baricentrics[2]>=0:
                 z = (baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
                 if z < z_buffer[y, x]:
                     image[y, x] = color_with_light
+                    z_prev = z_buffer[y, x]
                     z_buffer[y, x] = z
 
 def draw_with_rotation_by_index(image: Image, color: list[int], model: ObjModelClass.ObjModel, z_buffer: np.ndarray,
@@ -252,7 +250,7 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
                                             zbuffer: np.ndarray):
     point1, point2, point3 = model.get_points_by_index(polygon_number)
 
-    offset_z = model.offset_z * 2
+    offset_z = model.offset_z
     x0 = point1.x
     x1 = point2.x
     x2 = point3.x
@@ -263,7 +261,7 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
     z1 = point2.z + offset_z
     z2 = point3.z + offset_z
 
-    draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, zbuffer, color)
+    draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, zbuffer, color, polygon_number)
 
 
 
