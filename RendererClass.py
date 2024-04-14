@@ -9,7 +9,6 @@ import ObjModelClass
 import colors
 
 
-
 def algorithm_bresenham(image: np.ndarray, x0, y0, x1, y1, color) -> None:
     """
     :param x0:
@@ -65,11 +64,8 @@ def determine_baricentric(x: int, x0: float, x1: float, x2: float, y: int, y0: f
     return (lambda0, lambda1, lambda2)
 
 
-
-
 def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float) -> list:
-
+                                 y2: float, z0: float, z1: float, z2: float) -> list:
     '''
     vec1 = np.array([point0.x - point1.x, point0.y - point1.y, point0.z - point1.z])
     vec2 = np.array([point0.x - point0.x, point0.y - point0.y, point0.z - point0.z])
@@ -79,13 +75,13 @@ def calculate_normal_to_triangle(x0: float, x1: float, x2: float, y0: float, y1:
     j = -((x1 - x0) * (z1 - z2) - (x1 - x2) * (z1 - z0))
     k = (x1 - x0) * (y1 - y2) - (x1 - x2) * (y1 - y0)
 
-    result = [i, j, k] #np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
+    result = [i, j, k]  # np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
     return result
 
 
-
 def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float, light_direction_vector=[0.0, 0.0, 1.]) -> float:
+                              y2: float, z0: float, z1: float, z2: float,
+                              light_direction_vector=[0.0, 0.0, 1.]) -> float:
     normal_coordinates = calculate_normal_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2)
 
     norma_normal_to_triangle = np.linalg.norm(normal_coordinates)
@@ -98,8 +94,8 @@ def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: fl
 
     return result
 
-def calculate_new_point_position(model, point1, point2, point3, R):
 
+def calculate_new_point_position(model, point1, point2, point3, R):
     point1_matrix = np.array([
         point1.x,
         point1.y,
@@ -139,12 +135,11 @@ def calculate_new_point_position(model, point1, point2, point3, R):
     point3.y = result3[1]
     point3.z = result3[2]
 
-
     return point1, point2, point3
 
 
 def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float, image, z_buffer, color, i):
+                    y2: float, z0: float, z1: float, z2: float, image, z_buffer, color, i):
     light_cos = calculate_cos_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2)
     if light_cos > 0:
         return
@@ -175,18 +170,19 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
     color_with_light = [abs(item * light_cos) for item in color]
 
     divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
-    if (divider==0):
+    if divider == 0:
         return
     z = 0
-    for y in np.arange(y_min-1, y_max+1):
-        for x in np.arange(x_min-1, x_max+1):
+    for y in np.arange(y_min - 1, y_max + 1):
+        for x in np.arange(x_min - 1, x_max + 1):
             baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
-            if baricentrics[0]>=0 and baricentrics[1]>=0 and baricentrics[2]>=0:
+            if baricentrics[0] >= 0 and baricentrics[1] >= 0 and baricentrics[2] >= 0:
                 z = (baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
                 if z < z_buffer[y, x]:
                     image[y, x] = color_with_light
                     z_prev = z_buffer[y, x]
                     z_buffer[y, x] = z
+
 
 def draw_with_rotation_by_index(image: Image, color: list[int], model: ObjModelClass.ObjModel, z_buffer: np.ndarray,
                                 R: np.array, polygon_number: int):
@@ -233,7 +229,6 @@ def calculate_matrix_r(rotate_x, rotate_y, rotate_z) -> np.array:
 
 def draw_with_rotation(image: Image, color: list[int], model: ObjModelClass.ObjModel, z_buffer: np.ndarray,
                        rotate_x: int, rotate_y: int, rotate_z: int):
-
     R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
     total_faces = len(model.faces)
     print("total faces: ", total_faces)
@@ -244,6 +239,7 @@ def draw_with_rotation(image: Image, color: list[int], model: ObjModelClass.ObjM
 
         end_time = time()
         print(f"Итерация {i} / {total_faces}, время {end_time - start_time}")
+
 
 def draw_triangle_projective_transformation(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel,
                                             polygon_number: int,
@@ -264,6 +260,16 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
     draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, zbuffer, color, polygon_number)
 
 
+def norma(x0, y0, z0, x1, y1, z1, x2, y2, z2):
+    n = np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
+    return n
+
+def calc_normal_to_vertices(model):
+    normals_to_vertices = np.zeros(model.vertices.shape)
+    for i in range(1, len(model.faces) + 1):
+        point1, point2, point3 = model.get_points_by_index(i)
+        x1 =
+        n = norma()
 
 def draw_model_projective_transformation(image: Image, color: list[int], model: ObjModelClass.ObjModel,
                                          zbuffer: np.ndarray):
@@ -274,12 +280,26 @@ def draw_model_projective_transformation(image: Image, color: list[int], model: 
     :return:
     """
     total_faces = len(model.faces)
+    total_vertices= model.vertices
     print("total faces: ", total_faces)
+    normals_to_vertices = calc_normal_to_vertices(model)
     for i in range(1, total_faces + 1):
         start_time = time()
 
         draw_triangle_projective_transformation(image, color, model, i, zbuffer)
 
         end_time = time()
-        print(f"Итерация {i} / {total_faces}, время {end_time-start_time}")
+        print(f"Итерация {i} / {total_faces}, время {end_time - start_time}")
+
+def draw_iteration_guro_shading(image: Image, color:list[int], model:ObjModelClass.ObjModel, i:int, zbuffer: np.ndarray):
+    pass
+
+def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass.ObjModel, zbuffer: np.ndarray):
+    total_faces = len(model.faces)
+    print("Всего полигонов: ", total_faces)
+    for i in range(1, total_faces + 1):
+        start_time = time()
+        draw_iteration_guro_shading(image, color, model, i, zbuffer)
+        end_time = time()
+        print(f"Итерация {i} / {total_faces}, время {end_time - start_time}")
 
