@@ -144,7 +144,7 @@ def calculate_new_point_position(model, point1, point2, point3, R):
 
 
 def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1: float,
-                          y2: float, z0: float, z1: float, z2: float, image, z_buffer, color, i):
+                          y2: float, z0: float, z1: float, z2: float, image, z_buffer, color):
     light_cos = calculate_cos_to_triangle(x0, x1, x2, y0, y1, y2, z0, z1, z2)
     if light_cos > 0:
         return
@@ -177,7 +177,6 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
     divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
     if (divider==0):
         return
-    z = 0
     for y in np.arange(y_min-1, y_max+1):
         for x in np.arange(x_min-1, x_max+1):
             baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
@@ -185,7 +184,6 @@ def draw_with_light(scale: float, x0: float, x1: float, x2: float, y0: float, y1
                 z = (baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2)
                 if z < z_buffer[y, x]:
                     image[y, x] = color_with_light
-                    z_prev = z_buffer[y, x]
                     z_buffer[y, x] = z
 
 def draw_with_rotation_by_index(image: Image, color: list[int], model: ObjModelClass.ObjModel, z_buffer: np.ndarray,
@@ -261,7 +259,7 @@ def draw_triangle_projective_transformation(image: np.ndarray, color: list[int],
     z1 = point2.z + offset_z
     z2 = point3.z + offset_z
 
-    draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, zbuffer, color, polygon_number)
+    draw_with_light(model.scale, x0, x1, x2, y0, y1, y2, z0, z1, z2, image, zbuffer, color)
 
 
 
