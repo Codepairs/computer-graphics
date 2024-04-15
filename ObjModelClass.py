@@ -16,7 +16,8 @@ class ObjModel:
         self.offset_z = offset
         self.faces = self.parse_faces()
         self.vertices = self.parse_vertices()
-        #self.texture_numbers = self.parse_textures()
+        self.textures = self.parse_texture_coords()
+        self.texture_numbers = self.parse_texture_numbers()
 
         self.ymax = 0
         self.ymin = 0
@@ -181,23 +182,37 @@ class ObjModel:
             #return np.array(faces)
             return faces
 
-    def parse_textures(self):
+
+    def parse_texture_coords(self):
+        with open(self.obj_filepath, 'r') as f:
+            lines = np.array(f.readlines())
+            vertices_texture = []
+            for line in lines:
+                if line.startswith('vt '):
+                    vertex_texture = [float(val) for val in line.split()[1:]]
+                    vertices_texture.append(vertex_texture)
+            return np.array(vertices_texture)
+
+    def parse_texture_numbers(self):
         with open(self.obj_filepath, 'r') as f:
             lines = f.readlines()
             textures = []
             for line in lines:
                 if line.startswith('f '):
                     #print(line)
+                    texture = []
                     for val in line.split()[1:]:
                         #print(val)
-                        texture = int(val.split('/')[1])
-                        #print(texture)
-                    #texture = [int(val.split('/')[1]) for val in line.split()[1:]]
-                    textures.append(texture)
+                        texture.append(int(val.split('/')[1]))
+                    if len(texture) > 3:
+                        textures.append([texture[0], texture[2], texture[3]])
+                    textures.append([texture[0], texture[1], texture[2]])
 
             #Вот тут падает из-за разной размерности полигонов
             #return np.array(faces)
             return textures
+
+
 
     def get_points_by_index(self, vertices_index: int):
         """
@@ -217,6 +232,24 @@ class ObjModel:
         point2 = Point3D(raw_point2[0], raw_point2[1], raw_point2[2])
         point3 = Point3D(raw_point3[0], raw_point3[1], raw_point3[2])
         array = np.array([point1, point2, point3])
+        return array
+
+    def get_texture_by_index(self, vertices_index: int):
+        """
+        Возвращает координаты вершин грани.
+        ВНИМАНИЕ! Индексация номеров вершин начинается с единицы.
+        :param vertices_index:
+        :return: np.array
+        """
+        # Добавляем везде -1, тк мы считаем индексы с единицы.
+        if vertices_index <= 0:
+            raise ValueError('Неверный индекс вершины! Индексация номеров вершин начинается с единицы!')
+        points_indexes = self.texture_numbers[vertices_index - 1]
+        raw_point1 = self.textures[points_indexes[0] - 1]
+        raw_point2 = self.textures[points_indexes[1] - 1]
+        raw_point3 = self.textures[points_indexes[2] - 1]
+
+        array = np.array([raw_point1, raw_point2, raw_point3])
         return array
 
     def get_scale(self):
