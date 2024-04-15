@@ -284,7 +284,8 @@ def draw_model_projective_transformation(image: Image, color: list[int], model: 
 
 
 def draw_model_texture(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel,
-                                         zbuffer: np.ndarray, texture_np: np.ndarray):
+                        zbuffer: np.ndarray, texture_np: np.ndarray,
+                        rotate_x:int = 0, rotate_y:int = 0, rotate_z:int = 0):
     """
         Отрисовка текстур модели циклом по полигонам
         :param image:
@@ -296,17 +297,24 @@ def draw_model_texture(image: np.ndarray, color: list[int], model: ObjModelClass
     for i in range(1, total_faces + 1):
         start_time = time()
 
-        draw_texture(image, color, model, i, zbuffer, texture_np)
+        draw_texture(image, color, model, i, zbuffer, texture_np,
+                     rotate_x, rotate_y, rotate_z)
 
         end_time = time()
         print(f"Итерация {i} / {total_faces}, время {end_time - start_time}")
 
 
 def draw_texture(image: np.ndarray, color: list[int], model: ObjModelClass.ObjModel,
-                    polygon_number: int, zbuffer: np.ndarray, texture: np.ndarray):
+                    polygon_number: int, zbuffer: np.ndarray, texture: np.ndarray,
+                    rotate_x: int, rotate_y: int, rotate_z: int):
+
+    R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
+
     point0, point1, point2 = model.get_points_by_index(polygon_number)
+    point0, point1, point2 = calculate_new_point_position(model, point0, point1, point2, R)
+
     texture_point0, texture_point1, texture_point2 = model.get_texture_by_index(polygon_number)
-    offset_z = model.offset_z
+    offset_z = -model.offset_z
 
     x0 = point0.x
     x1 = point1.x
@@ -356,7 +364,7 @@ def draw_texture(image: np.ndarray, color: list[int], model: ObjModelClass.ObjMo
     if y_max > image.shape[0]:
         y_max = image.shape[0] - 1
 
-    color_with_light = [abs(item * light_cos) for item in color]
+    #color_with_light = [abs(item * light_cos) for item in color]
 
     divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
     if (divider == 0):
@@ -367,7 +375,10 @@ def draw_texture(image: np.ndarray, color: list[int], model: ObjModelClass.ObjMo
             if baricentrics[0] >= 0 and baricentrics[1] >= 0 and baricentrics[2] >= 0:
                 z = baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2
                 if z < zbuffer[y, x]:
-                    color_texture = texture[round(image.shape[1] * (baricentrics[0] * u0 + baricentrics[1] * u1 + baricentrics[2] * u2))][
-                        round(image.shape[0] * (baricentrics[0] * v0 + baricentrics[1] * v1 + baricentrics[2] * v2))]
-                    image[y, x] = color_with_light*color_texture
+                    color_texture = texture[
+                        round(image.shape[1] * (baricentrics[0] * u0 + baricentrics[1] * u1 + baricentrics[2] * u2))][
+                        round(image.shape[0] * (baricentrics[0] * v0 + baricentrics[1] * v1 + baricentrics[2] * v2))
+                    ]
+                    new_color = [abs(item * light_cos) for item in color_texture]
+                    image[y, x] = new_color
                     zbuffer[y, x] = z
