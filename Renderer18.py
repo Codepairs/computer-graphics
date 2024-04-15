@@ -369,8 +369,8 @@ def draw_texture(image: np.ndarray, color: list[int], model: ObjModelClass.ObjMo
     divider = ((p_x0 - p_x2) * (p_y1 - p_y2) - (p_x1 - p_x2) * (p_y0 - p_y2))
     if (divider == 0):
         return
-    for y in np.arange(y_min, y_max):
-        for x in np.arange(x_min, x_max):
+    for y in np.arange(y_min-1, y_max+1):
+        for x in np.arange(x_min-1, x_max+1):
             baricentrics = determine_baricentric(x, p_x0, p_x1, p_x2, y, p_y0, p_y1, p_y2, divider)
             if baricentrics[0] >= 0 and baricentrics[1] >= 0 and baricentrics[2] >= 0:
                 z = baricentrics[0] * z0 + baricentrics[1] * z1 + baricentrics[2] * z2
@@ -379,6 +379,7 @@ def draw_texture(image: np.ndarray, color: list[int], model: ObjModelClass.ObjMo
                         round(image.shape[1] * (baricentrics[0] * u0 + baricentrics[1] * u1 + baricentrics[2] * u2))][
                         round(image.shape[0] * (baricentrics[0] * v0 + baricentrics[1] * v1 + baricentrics[2] * v2))
                     ]
-                    new_color = [abs(item * light_cos) for item in color_texture]
+
+                    new_color = [(item * light_cos) for item in color_texture]
                     image[y, x] = new_color
                     zbuffer[y, x] = z
