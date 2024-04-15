@@ -129,24 +129,6 @@ class ObjModel:
         self.offset_coordinate_z(resolution)
         '''
 
-    '''
-    def offset_coordinate_x(self, resolution: tuple):
-        limit = resolution[1]
-        offset = 0
-        while abs(self.xmax) * self.scale + offset + limit // 10 < limit:
-            offset += limit // 10
-
-        self.offset_x = offset
-
-    def offset_coordinate_y(self, resolution: tuple):
-        limit = resolution[1]
-        offset = 0
-        while abs(self.ymax) * self.scale + offset + limit // 10 < limit:
-            offset += limit // 10
-
-        self.offset_y = offset
-    '''
-
     def offset_coordinate_z(self, resolution: tuple):
         limit = resolution[1]
         self.offset_z = limit//2
