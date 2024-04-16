@@ -306,40 +306,7 @@ def get_guro_shading(lambda1, lambda2, lambda3, norma, light):
     intensity = np.linalg.norm((lambda1 * l1 + lambda2 * l2 + lambda3 * l3))
     return intensity
 
-def draw_guro_shading(x0: float, x1: float, x2: float, y0: float, y1: float,
-                    y2: float, old_z0: float, old_z1: float, old_z2: float, image, z_buffer, color, normals):
-    light = [0, 0, 1]
-    x_min = int(min(x0, x1, x2) - 1)
-    y_min = int(min(y0, y1, y2) - 1)
-    x_max = int(max(x0, x1, x2) + 1)
-    y_max = int(max(y0, y1, y2) + 1)
 
-    if x_min < 0:
-        x_min = 0
-    if y_min < 0:
-        y_min = 0
-
-    if x_max > image.shape[1]:
-        x_max = image.shape[1] - 1
-    if y_max > image.shape[0]:
-        y_max = image.shape[0] - 1
-
-    divider = ((x0 - x2) * (y1 - y2) - (x1 - x2) * (y0 - y2))
-    if divider == 0:
-        return
-
-    for y in np.arange(y_min - 1, y_max + 1):
-        for x in np.arange(x_min - 1, x_max + 1):
-            I0, I1, I2 = determine_baricentric(x, x0, x1, x2, y, y0, y1, y2, divider)
-            if I0 >= 0 and I1 >= 0 and I2 >= 0:
-                z = (I0 * old_z0 + I1 * old_z1 + I2 * old_z2)
-                if z < z_buffer[y, x]:
-                    pixel_intensity = get_guro_shading(I0, I1, I2, normals, light)
-                    if pixel_intensity < 0:
-                        pixel_intensity = 0
-                    color_with_intensity = [int(item * pixel_intensity) for item in color]
-                    image[y, x] = color_with_intensity
-                    z_buffer[y, x] = z
 
 
 # определяем функцию для проективного преобразования точки
@@ -520,3 +487,139 @@ def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass
             draw_guro_shading(new_x0, new_x1, new_x2, new_y0, new_y1, new_y2, z0, z1, z2,image,zbuffer, color, normals)
 
 
+
+def draw_guro_shading(x0: float, x1: float, x2: float, y0: float, y1: float,
+                    y2: float, old_z0: float, old_z1: float, old_z2: float, image, z_buffer, color, normals):
+    light = [0, 0, 1]
+    x_min = int(min(x0, x1, x2) - 1)
+    y_min = int(min(y0, y1, y2) - 1)
+    x_max = int(max(x0, x1, x2) + 1)
+    y_max = int(max(y0, y1, y2) + 1)
+
+    if x_min < 0:
+        x_min = 0
+    if y_min < 0:
+        y_min = 0
+
+    if x_max > image.shape[1]:
+        x_max = image.shape[1] - 1
+    if y_max > image.shape[0]:
+        y_max = image.shape[0] - 1
+
+    divider = ((x0 - x2) * (y1 - y2) - (x1 - x2) * (y0 - y2))
+    if divider == 0:
+        return
+
+    for y in np.arange(y_min - 1, y_max + 1):
+        for x in np.arange(x_min - 1, x_max + 1):
+            I0, I1, I2 = determine_baricentric(x, x0, x1, x2, y, y0, y1, y2, divider)
+            if I0 >= 0 and I1 >= 0 and I2 >= 0:
+                z = (I0 * old_z0 + I1 * old_z1 + I2 * old_z2)
+                if z < z_buffer[y, x]:
+                    pixel_intensity = get_guro_shading(I0, I1, I2, normals, light)
+                    if pixel_intensity < 0:
+                        pixel_intensity = 0
+                    color_with_intensity = [int(item * pixel_intensity) for item in color]
+                    image[y, x] = color_with_intensity
+                    z_buffer[y, x] = z
+
+def draw_model_phong_shading(image: Image, color: list[int], model: ObjModelClass.ObjModel,
+                                zbuffer: np.ndarray,  rotate_x:int = 0, rotate_y:int = 0, rotate_z:int = 0):
+    """
+    Отрисовка модели циклом по полигонам
+    :param zbuffer:
+    :param color:
+    :param image:
+    :param model:
+    :return:
+    """
+    n = get_normals_for_points(model)
+    total_iter = len(model.faces)
+    print("Total iterations:", total_iter)
+    for i, face in enumerate(model.faces):
+        print(f"Итерация {i} / {total_iter}")
+        normals = [n[face[0] - 1], n[face[1] - 1], n[face[2] - 1]]
+        x0 = model.vertices[face[0] - 1][0]
+        y0 = model.vertices[face[0] - 1][1]
+        z0 = model.vertices[face[0] - 1][2]
+
+        x1 = model.vertices[face[1] - 1][0]
+        y1 = model.vertices[face[1] - 1][1]
+        z1 = model.vertices[face[1] - 1][2]
+
+        x2 = model.vertices[face[2] - 1][0]
+        y2 = model.vertices[face[2] - 1][1]
+        z2 = model.vertices[face[2] - 1][2]
+        scale_a = 0.7
+        scale_b = 0.7
+        R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
+
+        x0, x1, x2, y0, y1, y2, z0, z1, z2 = calculate_new_point_position(model, x0, x1, x2, y0, y1, y2, z0, z1, z2, R)
+
+
+        point1 = projective_transform(x0, y0, z0, scale_a, scale_b, image)
+        point2 = projective_transform(x1, y1, z1, scale_a, scale_b, image)
+        point3 = projective_transform(x2, y2, z2, scale_a, scale_b, image)
+        if point1[0] > 0 and point1[1] > 0 and point2[0] > 0 and point2[1] > 0 and point3[0] > 0 and point3[1] > 0:
+            new_x0 = point1[0]
+            new_y0 = point1[1]
+            new_z0 = point1[2]
+
+            new_x1 = point2[0]
+            new_y1 = point2[1]
+            new_z1 = point2[2]
+
+            new_x2 = point3[0]
+            new_y2 = point3[1]
+            new_z2 = point3[2]
+            draw_polygon_phong_shading(new_x0, new_x1, new_x2, new_y0, new_y1, new_y2, z0, z1, z2, image, zbuffer, color,
+                              normals)
+
+def draw_polygon_phong_shading(x0, x1, x2, y0, y1, y2,z0, z1, z2, image, z_buffer, color, normals):
+    light = np.array([0, 0, 1])
+    x_min = int(min(x0, x1, x2) - 1)
+    y_min = int(min(y0, y1, y2) - 1)
+    x_max = int(max(x0, x1, x2) + 1)
+    y_max = int(max(y0, y1, y2) + 1)
+
+    if x_min < 0:
+        x_min = 0
+    if y_min < 0:
+        y_min = 0
+
+    if x_max > image.shape[1]:
+        x_max = image.shape[1] - 1
+    if y_max > image.shape[0]:
+        y_max = image.shape[0] - 1
+
+    divider = ((x0 - x2) * (y1 - y2) - (x1 - x2) * (y0 - y2))
+    if divider == 0:
+        return
+
+    for y in np.arange(y_min - 1, y_max + 1):
+        for x in np.arange(x_min - 1, x_max + 1):
+            I0, I1, I2 = determine_baricentric(x, x0, x1, x2, y, y0, y1, y2, divider)
+            if I0 >= 0 and I1 >= 0 and I2 >= 0:
+                z = (I0 * z0 + I1 * z1 + I2 * z2)
+                if z < z_buffer[y, x]:
+                    n = I0 * normals[0] + I1 * normals[1] + I2 * normals[2]
+                    n = n / np.linalg.norm(n)
+                    intensity = phong_shading(n, light)
+                    if intensity < 0:
+                        intensity = 0
+                    color_with_intensity = [int(item * intensity) for item in color]
+                    image[y, x] = color_with_intensity
+                    z_buffer[y, x] = z
+
+def phong_shading(n, light):
+    L = light / np.linalg.norm(light)
+    N = n / np.linalg.norm(n)
+    V = np.array([0, 0, -1])
+    H = (L + V) / np.linalg.norm(L + V)
+    Kd = 0.6
+    Ks = 0.2
+    alpha = 50
+    ambient = Kd * 0.2
+    diffuse = Kd * max(0., np.dot(N, L))
+    specular = Ks * max(0, np.power(np.dot(H, N), alpha))
+    return ambient + diffuse + specular
