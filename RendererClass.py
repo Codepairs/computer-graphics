@@ -95,23 +95,23 @@ def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: fl
     return result
 
 
-def calculate_new_point_position(model, point1, point2, point3, R):
+def calculate_new_point_position(model, x0, x1, x2, y0, y1, y2,z0, z1, z2, R):
     point1_matrix = np.array([
-        point1.x,
-        point1.y,
-        point1.z
+        x0,
+        y0,
+        z0
     ])
 
     point2_matrix = np.array([
-        point2.x,
-        point2.y,
-        point2.z
+        x1,
+        y1,
+        z1
     ])
 
     point3_matrix = np.array([
-        point3.x,
-        point3.y,
-        point3.z
+        x2,
+        y2,
+        z2
     ])
 
     # print(R)
@@ -123,19 +123,19 @@ def calculate_new_point_position(model, point1, point2, point3, R):
     result3 = R @ point3_matrix
     # print(result1)
 
-    point1.x = result1[0]
-    point1.y = result1[1]
-    point1.z = result1[2]
+    x0 = result1[0]
+    y0 = result1[1]
+    z0 = result1[2]
 
-    point2.x = result2[0]
-    point2.y = result2[1]
-    point2.z = result2[2]
+    x1 = result2[0]
+    y1 = result2[1]
+    z1 = result2[2]
 
-    point3.x = result3[0]
-    point3.y = result3[1]
-    point3.z = result3[2]
+    x2 = result3[0]
+    y2 = result3[1]
+    z2 = result3[2]
 
-    return point1, point2, point3
+    return x0, x1, x2, y0, y1, y2,z0, z1, z2
 
 
 def draw_with_light(x0: float, x1: float, x2: float, y0: float, y1: float,
@@ -381,23 +381,26 @@ def draw_model_texture(image: Image, color: list[int], model: ObjModelClass.ObjM
         x2 = model.vertices[face[2] - 1][0]
         y2 = model.vertices[face[2] - 1][1]
         z2 = model.vertices[face[2] - 1][2]
+
+        u0 = model.textures[face[0]-1][0]
+        v0 = model.textures[face[0]-1][1]
+        u1 = model.textures[face[1] - 1][0]
+        v1 = model.textures[face[1] - 1][1]
+        u2 = model.textures[face[2] - 1][0]
+        v2 = model.textures[face[2] - 1][1]
+
         scale_a = 12
         scale_b = 12
+
+        R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
+
+        x0, x1, x2, y0, y1, y2,z0, z1, z2 = calculate_new_point_position(model, x0, x1, x2, y0, y1, y2,z0, z1, z2, R)
 
         point1 = projective_transform(x0,y0,z0, scale_a, scale_b, image)
         point2 = projective_transform(x1, y1, z1, scale_a, scale_b, image)
         point3 = projective_transform(x2, y2, z2, scale_a, scale_b, image)
 
-        #R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
-        #point1, point2, point3 = calculate_new_point_position(model, point1, point2, point3, R)
 
-        texture_point0, texture_point1, texture_point2 = model.get_texture_by_index(i+1)
-        u0 = texture_point0[0]
-        v0 = texture_point0[1]
-        u1 = texture_point1[0]
-        v1 = texture_point1[1]
-        u2 = texture_point2[0]
-        v2 = texture_point2[1]
 
         if point1[0] > 0 and point1[1] > 0 and  point2[0] > 0 and point2[1] > 0 and point3[0] > 0 and point3[1] > 0:
             new_x0 = point1[0]
