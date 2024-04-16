@@ -22,6 +22,8 @@ def main():
     #TaskManager.task15((1000, 1000), colors.SILVER, model_num=5, rotate_x=0, rotate_y=45, rotate_z=0)
     # TaskManager.task15((1000, 1000), colors.SILVER, model_num=5, rotate_x=0, rotate_y=135, rotate_z=0)
 
+    #TaskManager.task16((1000, 1000), colors.SILVER, model_num=5)
+    #TaskManager.task17((1000, 1000), colors.SILVER, model_num=4)
     # TaskManager.task16((1000, 1000), colors.SILVER, model_num=5)
     TaskManager.task18((1000, 1000), colors.SILVER, model_num=6, rotate_x=90, rotate_y=-45, rotate_z=90)
 
