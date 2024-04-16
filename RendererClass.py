@@ -370,6 +370,7 @@ def draw_model_texture(image: Image, color: list[int], model: ObjModelClass.ObjM
     for i, face in enumerate(model.faces):
         print(f"Итерация {i} / {total_iter}")
         normals = [n[face[0] - 1], n[face[1] - 1], n[face[2] - 1]]
+        point1_tex, point2_tex, point3_tex = model.get_texture_by_index(i+1)
         x0 = model.vertices[face[0] - 1][0]
         y0 = model.vertices[face[0] - 1][1]
         z0 = model.vertices[face[0] - 1][2]
@@ -382,12 +383,12 @@ def draw_model_texture(image: Image, color: list[int], model: ObjModelClass.ObjM
         y2 = model.vertices[face[2] - 1][1]
         z2 = model.vertices[face[2] - 1][2]
 
-        u0 = model.textures[face[0]-1][0]
-        v0 = model.textures[face[0]-1][1]
-        u1 = model.textures[face[1] - 1][0]
-        v1 = model.textures[face[1] - 1][1]
-        u2 = model.textures[face[2] - 1][0]
-        v2 = model.textures[face[2] - 1][1]
+        u0 = point1_tex[0]
+        v0 = point1_tex[1]
+        u1 = point2_tex[0]
+        v1 = point2_tex[1]
+        u2 = point3_tex[0]
+        v2 = point3_tex[1]
 
         scale_a = 12
         scale_b = 12
@@ -449,8 +450,9 @@ def draw_texture(x0: float, x1: float, x2: float, y0: float, y1: float,
                 z = (I0 * old_z0 + I1 * old_z1 + I2 * old_z2)
                 if z < z_buffer[y, x]:
                     color_texture = texture[
-                        round(texture.shape[1] * (I0 * u0 + I1 * u1 + I2 * u2))][
                         round(texture.shape[0] * (I0 * v0 + I1 * v1 + I2 * v2))
+                        ][
+                        round(texture.shape[1] * (I0 * u0 + I1 * u1 + I2 * u2))
                     ]
 
                     pixel_intensity = get_guro_shading(I0, I1, I2, normals, light)

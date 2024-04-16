@@ -84,7 +84,7 @@ class TaskManager:
         z_buffer = np.full(matrix_size, 100000., dtype=np.float64)
 
         texture = Image.open(f'./textures/model_{model_num}.jpg')
-        #texture = ImageOps.flip(texture)
+        texture = ImageOps.flip(texture)
         #texture.show()
         texture_np = np.array(texture)
 
