@@ -95,6 +95,7 @@ def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: fl
     return result
 
 
+
 def calculate_new_point_position(model, x0, x1, x2, y0, y1, y2, z0, z1, z2, R):
     point1_matrix = np.array([
         x0,
@@ -117,8 +118,7 @@ def calculate_new_point_position(model, x0, x1, x2, y0, y1, y2, z0, z1, z2, R):
     result1 = R @ point1_matrix
     result2 = R @ point2_matrix
     result3 = R @ point3_matrix
-    # print(result1)
-
+    
     new_x0 = result1[0]
     new_y0 = result1[1]
     new_z0 = result1[2]
@@ -132,6 +132,7 @@ def calculate_new_point_position(model, x0, x1, x2, y0, y1, y2, z0, z1, z2, R):
     new_z2 = result3[2]
 
     return new_x0, new_y0, new_z0, new_x1, new_y1, new_z1, new_x2, new_y2, new_z2
+
 
 
 def draw_with_light(x0: float, x1: float, x2: float, y0: float, y1: float,
@@ -273,13 +274,13 @@ def normal(x0, y0, z0, x1, y1, z1, x2, y2, z2):
     n = np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
     return n
 
-
 def get_normals_for_points(model):
     normals = [[0, 0, 0]] * len(model.vertices)
     for i in model.faces:
         x0 = model.vertices[i[0] - 1][0]
         y0 = model.vertices[i[0] - 1][1]
         z0 = model.vertices[i[0] - 1][2]
+
 
         x1 = model.vertices[i[1] - 1][0]
         y1 = model.vertices[i[1] - 1][1]
@@ -295,7 +296,6 @@ def get_normals_for_points(model):
             normals[i[j] - 1] += norma
     return normals
 
-
 def get_guro_shading(lambda1, lambda2, lambda3, norma, light):
     light_norma = np.linalg.norm(light)
     l1 = np.cross(norma[0], light) / (np.linalg.norm(norma[0]) * light_norma)
@@ -305,6 +305,18 @@ def get_guro_shading(lambda1, lambda2, lambda3, norma, light):
     return intensity
 
 
+
+# определяем функцию для проективного преобразования точки
+def projective_transform(x, y, z, ax, ay, image):
+    # создаем матрицу проективного преобразования
+    matrix = [[ax, 0, image.shape[1] / 2],
+              [0, ay, 200],
+              [0, 0, 1]]
+    coord = [x, y, 1]
+    # умножаем матрицу проективного преобразования на точку для получения преобразованной точки
+    res = np.dot(matrix, coord)
+    return res
+  
 def draw_guro_shading(x0: float, x1: float, x2: float, y0: float, y1: float,
                       y2: float, old_z0: float, old_z1: float, old_z2: float, image, z_buffer, color, normals):
     light = [0, 0, 1]
@@ -341,18 +353,6 @@ def draw_guro_shading(x0: float, x1: float, x2: float, y0: float, y1: float,
                     z_buffer[y, x] = z
 
 
-# определяем функцию для проективного преобразования точки
-def projective_transform(x, y, z, ax, ay, image):
-    # создаем матрицу проективного преобразования
-    matrix = [[ax, 0, image.shape[1] / 2],
-              [0, ay, 200],
-              [0, 0, 1]]
-    coord = [x, y, 1]
-    # умножаем матрицу проективного преобразования на точку для получения преобразованной точки
-    res = np.dot(matrix, coord)
-    return res
-
-
 def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass.ObjModel,
                             zbuffer: np.ndarray, rotate_x, rotate_y, rotate_z):
     """
@@ -368,7 +368,12 @@ def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass
     R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
     for i, face in enumerate(model.faces):
         print(f"Iteration {i} / {len(model.faces)}")
-        normals = [n[face[0] - 1], n[face[1] - 1], n[face[2] - 1]]
+        n1 = n[face[0] - 1]
+        n2 = n[face[1] - 1]
+        n3 = n[face[2] - 1]
+
+        rn1, rn2, rn3 = rotate_normals(n1, n2, n3, R)
+        normals = [rn1, rn2, rn3]
         x0 = model.vertices[face[0] - 1][0]
         y0 = model.vertices[face[0] - 1][1]
         z0 = model.vertices[face[0] - 1][2]
@@ -397,3 +402,112 @@ def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass
             new_y2 = point3[1]
             draw_guro_shading(new_x0, new_x1, new_x2, new_y0, new_y1, new_y2, z0, z1, z2, image, zbuffer, color,
                               normals)
+            
+def draw_model_texture(image: Image, color: list[int], model: ObjModelClass.ObjModel,
+                            zbuffer: np.ndarray, texture_np: np.ndarray,
+                        rotate_x:int = 0, rotate_y:int = 0, rotate_z:int = 0):
+    """
+    Отрисовка модели циклом по полигонам
+    :param zbuffer:
+    :param color:
+    :param image:
+    :param model:
+    :return:
+    """
+    n = get_normals_for_points(model)
+    total_iter = len(model.faces)
+    print("Total iterations:", total_iter)
+    for i, face in enumerate(model.faces):
+        print(f"Итерация {i} / {total_iter}")
+        normals = [n[face[0] - 1], n[face[1] - 1], n[face[2] - 1]]
+        point1_tex, point2_tex, point3_tex = model.get_texture_by_index(i+1)
+        x0 = model.vertices[face[0] - 1][0]
+        y0 = model.vertices[face[0] - 1][1]
+        z0 = model.vertices[face[0] - 1][2]
+
+        x1 = model.vertices[face[1] - 1][0]
+        y1 = model.vertices[face[1] - 1][1]
+        z1 = model.vertices[face[1] - 1][2]
+
+        x2 = model.vertices[face[2] - 1][0]
+        y2 = model.vertices[face[2] - 1][1]
+        z2 = model.vertices[face[2] - 1][2]
+
+        u0 = point1_tex[0]
+        v0 = point1_tex[1]
+        u1 = point2_tex[0]
+        v1 = point2_tex[1]
+        u2 = point3_tex[0]
+        v2 = point3_tex[1]
+
+        scale_a = 12
+        scale_b = 12
+
+        R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
+
+        x0, x1, x2, y0, y1, y2,z0, z1, z2 = calculate_new_point_position(model, x0, x1, x2, y0, y1, y2,z0, z1, z2, R)
+
+        point1 = projective_transform(x0,y0,z0, scale_a, scale_b, image)
+        point2 = projective_transform(x1, y1, z1, scale_a, scale_b, image)
+        point3 = projective_transform(x2, y2, z2, scale_a, scale_b, image)
+
+
+
+        if point1[0] > 0 and point1[1] > 0 and  point2[0] > 0 and point2[1] > 0 and point3[0] > 0 and point3[1] > 0:
+            new_x0 = point1[0]
+            new_y0 = point1[1]
+            new_z0 = point1[2]
+
+            new_x1 = point2[0]
+            new_y1 = point2[1]
+            new_z1 = point2[2]
+
+            new_x2 = point3[0]
+            new_y2 = point3[1]
+            new_z2 = point3[2]
+            draw_texture(new_x0, new_x1, new_x2, new_y0, new_y1, new_y2, z0, z1, z2,image,zbuffer, normals, texture_np,
+                         u0, u1, u2, v0, v1,  v2)
+
+
+def draw_texture(x0: float, x1: float, x2: float, y0: float, y1: float,
+                    y2: float, old_z0: float, old_z1: float, old_z2: float, image, z_buffer,  normals, texture: np.ndarray,
+                 u0, u1, u2, v0, v1,  v2
+                 ):
+    light = [0, 0, 1]
+    x_min = int(min(x0, x1, x2) - 1)
+    y_min = int(min(y0, y1, y2) - 1)
+    x_max = int(max(x0, x1, x2) + 1)
+    y_max = int(max(y0, y1, y2) + 1)
+
+    if x_min < 0:
+        x_min = 0
+    if y_min < 0:
+        y_min = 0
+
+    if x_max > image.shape[1]:
+        x_max = image.shape[1] - 1
+    if y_max > image.shape[0]:
+        y_max = image.shape[0] - 1
+
+    divider = ((x0 - x2) * (y1 - y2) - (x1 - x2) * (y0 - y2))
+    if divider == 0:
+        return
+
+    for y in np.arange(y_min - 1, y_max + 1):
+        for x in np.arange(x_min - 1, x_max + 1):
+            I0, I1, I2 = determine_baricentric(x, x0, x1, x2, y, y0, y1, y2, divider)
+            if I0 >= 0 and I1 >= 0 and I2 >= 0:
+                z = (I0 * old_z0 + I1 * old_z1 + I2 * old_z2)
+                if z < z_buffer[y, x]:
+                    color_texture = texture[
+                        round(texture.shape[0] * (I0 * v0 + I1 * v1 + I2 * v2))
+                        ][
+                        round(texture.shape[1] * (I0 * u0 + I1 * u1 + I2 * u2))
+                    ]
+
+                    pixel_intensity = get_guro_shading(I0, I1, I2, normals, light)
+                    if pixel_intensity < 0:
+                        pixel_intensity = 0
+                    color_with_intensity = pixel_intensity * color_texture
+                    image[y, x] = color_with_intensity
+                    z_buffer[y, x] = z
