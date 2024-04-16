@@ -95,47 +95,43 @@ def calculate_cos_to_triangle(x0: float, x1: float, x2: float, y0: float, y1: fl
     return result
 
 
-def calculate_new_point_position(model, point1, point2, point3, R):
+def calculate_new_point_position(model, x0, x1, x2, y0, y1, y2, z0, z1, z2, R):
     point1_matrix = np.array([
-        point1.x,
-        point1.y,
-        point1.z
+        x0,
+        y0,
+        z0
     ])
 
     point2_matrix = np.array([
-        point2.x,
-        point2.y,
-        point2.z
+        x1,
+        y1,
+        z1
     ])
 
     point3_matrix = np.array([
-        point3.x,
-        point3.y,
-        point3.z
+        x2,
+        y2,
+        z2
     ])
-
-    # print(R)
-
-    # print(point1_matrix)
 
     result1 = R @ point1_matrix
     result2 = R @ point2_matrix
     result3 = R @ point3_matrix
     # print(result1)
 
-    point1.x = result1[0]
-    point1.y = result1[1]
-    point1.z = result1[2]
+    new_x0 = result1[0]
+    new_y0 = result1[1]
+    new_z0 = result1[2]
 
-    point2.x = result2[0]
-    point2.y = result2[1]
-    point2.z = result2[2]
+    new_x1 = result2[0]
+    new_y1 = result2[1]
+    new_z1 = result2[2]
 
-    point3.x = result3[0]
-    point3.y = result3[1]
-    point3.z = result3[2]
+    new_x2 = result3[0]
+    new_y2 = result3[1]
+    new_z2 = result3[2]
 
-    return point1, point2, point3
+    return new_x0, new_y0, new_z0, new_x1, new_y1, new_z1, new_x2, new_y2, new_z2
 
 
 def draw_with_light(x0: float, x1: float, x2: float, y0: float, y1: float,
@@ -277,12 +273,13 @@ def normal(x0, y0, z0, x1, y1, z1, x2, y2, z2):
     n = np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
     return n
 
+
 def get_normals_for_points(model):
     normals = [[0, 0, 0]] * len(model.vertices)
     for i in model.faces:
-        x0 = model.vertices[i[0]-1][0]
-        y0 = model.vertices[i[0]-1][1]
-        z0 = model.vertices[i[0]-1][2]
+        x0 = model.vertices[i[0] - 1][0]
+        y0 = model.vertices[i[0] - 1][1]
+        z0 = model.vertices[i[0] - 1][2]
 
         x1 = model.vertices[i[1] - 1][0]
         y1 = model.vertices[i[1] - 1][1]
@@ -295,8 +292,9 @@ def get_normals_for_points(model):
         np.cross([x1 - x2, y1 - y2, z1 - z2], [x1 - x0, y1 - y0, z1 - z0])
         norma = normal(x0, y0, z0, x1, y1, z1, x2, y2, z2)
         for j in range(3):
-            normals[i[j]-1] += norma
+            normals[i[j] - 1] += norma
     return normals
+
 
 def get_guro_shading(lambda1, lambda2, lambda3, norma, light):
     light_norma = np.linalg.norm(light)
@@ -306,8 +304,9 @@ def get_guro_shading(lambda1, lambda2, lambda3, norma, light):
     intensity = np.linalg.norm((lambda1 * l1 + lambda2 * l2 + lambda3 * l3))
     return intensity
 
+
 def draw_guro_shading(x0: float, x1: float, x2: float, y0: float, y1: float,
-                    y2: float, old_z0: float, old_z1: float, old_z2: float, image, z_buffer, color, normals):
+                      y2: float, old_z0: float, old_z1: float, old_z2: float, image, z_buffer, color, normals):
     light = [0, 0, 1]
     x_min = int(min(x0, x1, x2) - 1)
     y_min = int(min(y0, y1, y2) - 1)
@@ -337,7 +336,7 @@ def draw_guro_shading(x0: float, x1: float, x2: float, y0: float, y1: float,
                     pixel_intensity = get_guro_shading(I0, I1, I2, normals, light)
                     if pixel_intensity < 0:
                         pixel_intensity = 0
-                    color_with_intensity = [int(item * pixel_intensity) for item in color]
+                    color_with_intensity = [int(item * -pixel_intensity) for item in color]
                     image[y, x] = color_with_intensity
                     z_buffer[y, x] = z
 
@@ -353,8 +352,9 @@ def projective_transform(x, y, z, ax, ay, image):
     res = np.dot(matrix, coord)
     return res
 
+
 def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass.ObjModel,
-                            zbuffer: np.ndarray):
+                            zbuffer: np.ndarray, rotate_x, rotate_y, rotate_z):
     """
     Отрисовка модели циклом по полигонам
     :param zbuffer:
@@ -365,8 +365,9 @@ def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass
     """
     n = get_normals_for_points(model)
     print("Total iterations:", len(model.faces))
+    R = calculate_matrix_r(rotate_x, rotate_y, rotate_z)
     for i, face in enumerate(model.faces):
-        print("Iteration: ", i)
+        print(f"Iteration {i} / {len(model.faces)}")
         normals = [n[face[0] - 1], n[face[1] - 1], n[face[2] - 1]]
         x0 = model.vertices[face[0] - 1][0]
         y0 = model.vertices[face[0] - 1][1]
@@ -379,23 +380,20 @@ def draw_model_guro_shading(image: Image, color: list[int], model: ObjModelClass
         x2 = model.vertices[face[2] - 1][0]
         y2 = model.vertices[face[2] - 1][1]
         z2 = model.vertices[face[2] - 1][2]
+        x0, y0, z0, x1, y1, z1, x2, y2, z2 = calculate_new_point_position(model, x0, x1, x2, y0, y1, y2, z0, z1, z2, R)
         scale_a = 6
         scale_b = 6
-        point1 = projective_transform(x0,y0,z0, scale_a, scale_b, image)
+        point1 = projective_transform(x0, y0, z0, scale_a, scale_b, image)
         point2 = projective_transform(x1, y1, z1, scale_a, scale_b, image)
         point3 = projective_transform(x2, y2, z2, scale_a, scale_b, image)
-        if point1[0] > 0 and point1[1] > 0 and  point2[0] > 0 and point2[1] > 0 and point3[0] > 0 and point3[1] > 0:
+        if point1[0] > 0 and point1[1] > 0 and point2[0] > 0 and point2[1] > 0 and point3[0] > 0 and point3[1] > 0:
             new_x0 = point1[0]
             new_y0 = point1[1]
-            new_z0 = point1[2]
 
             new_x1 = point2[0]
             new_y1 = point2[1]
-            new_z1 = point2[2]
 
             new_x2 = point3[0]
             new_y2 = point3[1]
-            new_z2 = point3[2]
-            draw_guro_shading(new_x0, new_x1, new_x2, new_y0, new_y1, new_y2, z0, z1, z2,image,zbuffer, color, normals)
-
-
+            draw_guro_shading(new_x0, new_x1, new_x2, new_y0, new_y1, new_y2, z0, z1, z2, image, zbuffer, color,
+                              normals)

@@ -69,7 +69,7 @@ class TaskManager:
         image = np.zeros(matrix_size + (3,), dtype=np.uint8)
 
         z_buffer = np.full(matrix_size, np.Infinity, dtype=np.float32)
-        Renderer.draw_model_guro_shading(image, color, model, z_buffer)
+        Renderer.draw_model_guro_shading(image, color, model, z_buffer, 0,90,0)
 
         file_image = Image.fromarray(image, "RGB")
         file_image = ImageOps.flip(file_image)
